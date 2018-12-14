@@ -1,0 +1,42 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+
+ #map-wrap {
+ 	height:400px; 
+ 	width:100%;
+ 	position: relative; 
+ 	overflow: hidden;
+ }
+
+ .cwd-map-button-panel {
+ }
+
+div.cwd-table-wrap {
+	overflow-x: auto;
+}
+
+div.cwd-table-wrap th a span{
+	text-transform:capitalize;
+}
+
+.tablenav-pages-navspan{
+	margin-right:4px;
+}
+
+#cwd-form-id span{
+	float:left;
+	padding:0 20px 0 20px;
+}
+
+#cwd-form-id h4.cwd-form-titles {
+	margin-bottom:.5em;
+}
+
+#cwd-form-id textarea.marker-form-input-field {
+	resize:both;
+}
+
+
+

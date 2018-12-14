@@ -1,0 +1,36 @@
+***************
+	TO DO
+***************
+
+Markers Page 
+- Put map on Add Markers page
+
+Maps Page 
+- All settings to apply to different maps 
+
+Misc
+- Validate database inputs
+- Make number inputs process as number types
+- Make map variable editable on maps page
+- Make shortcode to display map on page
+- Clean Code, esp. admin.js
+- ~ Add shortcode to loader class instead of adding in public class (still define shortcode callback in public)
+- Make searchbox for markers that filters markers in map
+- *Try making objects/markers fully dynamic by having seperate tables for post and postmeta (check speed)*
+- Make Add Marker Update Markers if selected from table or map and form automatically filled  
+- Add International Support
+- When click cluster don't make marker (also show all markers or zoom?)
+- When Cluster is Out of View marker is not assigned to cluster and list selected won't jump there!!!
+- Make import ajax request
+- Make cluster info nand cluster box user defined based on table description user gave
+- Make cluster click boxes have a zoom to marker box
+- Can we avoid the stop propogation ???
+- Make map and markers have unique id and styles so multiples can be created
+
+
+
+Public 
+
+
+
+

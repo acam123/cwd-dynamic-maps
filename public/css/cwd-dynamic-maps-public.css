@@ -1,0 +1,11 @@
+/**
+ * All of the CSS for your public-facing functionality should be
+ * included in this file.
+ */
+
+ #cwd-map-wrap-frontend {
+ 	height: 400px;
+	width: 100%;
+	position: relative; 
+ 	overflow: hidden;
+ }
