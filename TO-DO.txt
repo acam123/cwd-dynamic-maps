@@ -26,6 +26,9 @@ Misc
 - Make cluster click boxes have a zoom to marker box
 - Can we avoid the stop propogation ???
 - Make map and markers have unique id and styles so multiples can be created
+- Fix error when add invalid table column (e.g. blank)
+- Export and Import should match (import w/o time, export w/)
+- Import more robust handle inputs w/ lat long time id, and check for other data columns
 
 
 

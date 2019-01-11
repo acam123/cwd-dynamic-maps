@@ -403,7 +403,7 @@ class Cwd_Dynamic_Maps_Marker_Table {
 
 
 	public static function cwd_settings_update() {
-	    if(isset($_POST)) {
+	    if(isset($_POST['update_table_cols'])) {
 	    	$add_arr = array();
 	    	$add_cols_match = false;
 	    	$del_arr = array();

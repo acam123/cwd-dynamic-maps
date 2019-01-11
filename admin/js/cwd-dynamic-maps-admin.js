@@ -816,20 +816,22 @@
 		map = new google.maps.Map(document.getElementById('map-wrap'), options); 
 
 		var historicMapBounds = {
-			/*north: 42.598010,
-			south: 42.170221,
-			east: -70.885528,
-			west: -71.332515
-			*/
+			/*
 			north:42.318010,
 			south:42.290221,
 			east:-71.505528,
-			west:-71.572515 
+			west:-71.572515
+			*/
+			north:42.30712,
+			south:42.30590,
+			east:-71.53036,
+			west:-71.53145
 		}
 
 
 		historicOverlay = new google.maps.GroundOverlay(
-			'../wp-content/plugins/cwd-dynamic-maps/admin/img/Boston_1852_wholemap_web.jpg',
+			//'../wp-content/plugins/cwd-dynamic-maps/admin/img/Boston_1852_wholemap_web.jpg',
+			'../wp-content/plugins/cwd-dynamic-maps/admin/img/ArtTutor_GridPic',
 			historicMapBounds, {clickable:false}
 			);
 		toggleOverlay();
@@ -842,6 +844,7 @@
 		for(var i = 0;i < markers.length;i++){
 			// Add marker
 			addMarker(markers[i]);
+			console.log(markers[i]);
 		}
 
 		
@@ -850,19 +853,28 @@
 		function addMarker(m){
 			var coords = {lat:parseFloat(m.latitude), lng:parseFloat(m.longitude)};
 			var marker = new google.maps.Marker({
+				icon: {
+					url: '../wp-content/plugins/cwd-dynamic-maps/admin/img/location-pin-curvy-outline.png',
+					scaledSize:  new google.maps.Size(20, 20), // scaled size
+				},
 				position:coords,
-				cwd_id:m.id 
+				cwd_id:m.id,
+				cwd_name:m.Name,
+				cwd_No:m.No,
+				cwd_Death:m.Death
 			});
-			cluster.push(marker);
+			cluster.push(marker); // AIDAN!!! REINSTATE THIS AFTER ADDING MARKERS TO HAVE CLUSTER 
+			//marker.setMap(map); // REMOVE THIS LINE AND SWAP WITH ABOVE
+
 			//console.log(marker['cwd_id']);
 
 		
 			// Check content
 			if (true /*m.description*/){
 				var infoWindow = new google.maps.InfoWindow({
-			    	content:'<h4>'+m.description+'</h4>'
-			    		+'<p>Name: '+m.first_name+' '+m.middle_names+' '+m.last_name+'</p>'
-			    		+'<p>Born: '+m.born+', Died: '+m.died+'</p>'
+			    	content:'<h4>'+m.Name+'</h4>'
+			    		+'<p>No. '+m.No+'</p>'
+			    		+'<p>Date: '+m.Death+'</p>'
 				});
 
 				//Maybe this should be drawn dynamically  
@@ -951,12 +963,12 @@
 				cluster_ids.push(clustersMarkers[i].cwd_id);
 				var tmp = markers.find(function (obj) { return obj.id == clustersMarkers[i].cwd_id; });
 				clustersMarkersData.push(tmp);
-				clusterDescription += tmp.id +' '+tmp.first_name+ ' ' +tmp.middle_names+ ' ' +tmp.last_name+'<br>';
+				clusterDescription += '<b>'+tmp.No +'</b>, '+tmp.Name+ ', ' +tmp.Death+ '<br>';
 			}
 
 
 			var infoWindow = new google.maps.InfoWindow({
-			    	content:'<h4>Cluster Window:</h4>'
+			    	content:''
 			    			+ clusterDescription,
 			    	position: cluster.getCenter()
 				});

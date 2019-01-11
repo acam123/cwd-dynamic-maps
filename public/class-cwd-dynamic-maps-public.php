@@ -98,7 +98,11 @@ class Cwd_Dynamic_Maps_Public {
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/cwd-dynamic-maps-public.js', array( 'jquery' ), $this->version, false );
 
-		// Pass PHP to admin JS
+		wp_enqueue_script( $this->plugin_name.'-marker-cluster', plugin_dir_url( __FILE__ ) . 'js/markerclusterer.js', array(), $this->version, true );
+
+		// Pass PHP to public JS
+			// cwd_php_vars
+			wp_localize_script( $this->plugin_name/*.'-public-js'*/, 'cwd_php_vars', stripslashes(wp_json_encode(Cwd_Dynamic_Maps_Marker_Table::get_table_data_by_cols(Cwd_Dynamic_Maps_Marker_Table::get_table_cols_clean_3() ))) ); 
 			// Api Key
 			wp_localize_script( $this->plugin_name /*.'-public-js'*/, 'cwd_api_key', get_option('cwd_dynamic_maps_option_api_key') );
 
@@ -118,7 +122,7 @@ class Cwd_Dynamic_Maps_Public {
 			'markers' => 'some markers'
 			), $atts);
 
-		return "<div id='cwd-map-wrap-frontend'></div>" . ob_get_clean() ;
+		return "<div id='cwd-map-wrap-frontend'></div><div class='cwd-table-wrap'></div>" . ob_get_clean() ;
 	}
 
 }

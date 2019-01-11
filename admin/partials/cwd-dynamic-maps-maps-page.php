@@ -118,7 +118,11 @@
 		    </tfoot>
 
 		</table>
+
+		<input type="submit" name="update_table_cols" class="button button-primary" value="Save" />
+		
 	</form>
+
 
 	<div id="map-wrap"></div>
 <?php
