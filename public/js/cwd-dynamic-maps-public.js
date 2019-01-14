@@ -213,7 +213,7 @@
 		var input = $('input[id="current-page-selector"]');
 		var maxPageText = $('span[class="total-pages"]');
 		var displayNum = $('span[class="displaying-num"]');
-		var maxPerPage = 3;
+		var maxPerPage = 5;
 		var matchedRows;
 		var numRows;
 		var totalPages;
@@ -646,24 +646,24 @@
 
 			//var tmp = Object.entries(event);
 
-			console.log(Object.entries(event));
+			//console.log(Object.entries(event));
 
 			//check if click is a cluster click
 			var tmp = '';
 			for ( var prop in event ) {
-				console.log( prop);
+				//console.log( prop);
 				if (event[prop].explicitOriginalTarget && event[prop].explicitOriginalTarget.className) {
-					console.log('-exists 1');
+					//console.log('-exists 1');
 					tmp = event[prop].explicitOriginalTarget.className; 
 
 				}
 				else if (event[prop].explicitOriginalTarget && event[prop].explicitOriginalTarget.parentNode && event[prop].explicitOriginalTarget.parentNode.className) {
-					console.log('-exists 2');
+					//console.log('-exists 2');
 					tmp = event[prop].explicitOriginalTarget.parentNode.className;
 
 				}
 				else {
-					console.log('--NULL');
+					//console.log('--NULL');
 				}
 			}
 
