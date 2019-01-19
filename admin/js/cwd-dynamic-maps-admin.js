@@ -234,7 +234,7 @@
 	 	row = $('<tr>');
 	 	for (y=0; y<numCols; ++y) {
 	 		var colName = colNames[y];
-	 		th = $('<th>').attr('data-cwd-col', colName).attr('scope', 'col').addClass('sortable desc cwd-sortable-col');
+	 		th = $('<th>').attr('data-cwd-col', colName).attr('scope', 'col').addClass('sortable asc cwd-sortable-col');
 	 		if ($.isNumeric(firstRow[colName])) {
 	 			th.addClass('cwd_number');
 	 		}
@@ -283,7 +283,7 @@
 
 	 			row.append(td);	
 	 		}
-	 		table.append(row);
+	 		table.prepend(row);
 	 	}
 	 	table.append(tFoot);
 
@@ -860,7 +860,7 @@
 				position:coords,
 				cwd_id:m.id,
 				cwd_name:m.Name,
-				cwd_No:m.No,
+				cwd_No:m.Burial_Site_Number,
 				cwd_Death:m.Death
 			});
 			cluster.push(marker); // AIDAN!!! REINSTATE THIS AFTER ADDING MARKERS TO HAVE CLUSTER 
@@ -873,7 +873,7 @@
 			if (true /*m.description*/){
 				var infoWindow = new google.maps.InfoWindow({
 			    	content:'<h4>'+m.Name+'</h4>'
-			    		+'<p>No. '+m.No+'</p>'
+			    		+'<p>No. '+m.Burial_Site_Number+'</p>'
 			    		+'<p>Date: '+m.Death+'</p>'
 				});
 
@@ -937,7 +937,7 @@
     		 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     		 */
     		if (event) {
-    			//event.stopPropagation(); // *** REMOVE FOR MAPS W/OUT ADD MARKER FEATURE ***
+    			event.stopPropagation(); // *** REMOVE FOR MAPS W/OUT ADD MARKER FEATURE ***
     		}
     		
     		console.log('*** CLUSTER EVENT ***');
@@ -963,7 +963,7 @@
 				cluster_ids.push(clustersMarkers[i].cwd_id);
 				var tmp = markers.find(function (obj) { return obj.id == clustersMarkers[i].cwd_id; });
 				clustersMarkersData.push(tmp);
-				clusterDescription += '<b>'+tmp.No +'</b>, '+tmp.Name+ ', ' +tmp.Death+ '<br>';
+				clusterDescription += '<b>'+tmp.Burial_Site_Number +'</b>, '+tmp.Name+ ', ' +tmp.Death+ '<br>';
 			}
 
 

@@ -122,7 +122,7 @@ class Cwd_Dynamic_Maps_Public {
 			'markers' => 'some markers'
 			), $atts);
 
-		return "<div id='cwd-map-wrap-frontend'></div><div class='cwd-table-wrap'></div>" . ob_get_clean() ;
+		return "<div id='cwd-frontend-box'> <div style='width:49%; float:left;' id='cwd-map-wrap-frontend'></div><div style='width:49%; float:right;' class='cwd-table-wrap'></div> </div>" . ob_get_clean() ;
 	}
 
 }

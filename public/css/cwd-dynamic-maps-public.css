@@ -3,8 +3,22 @@
  * included in this file.
  */
 
+ #cwd-frontend-box {
+ 	border: 1px solid #e5e5e5;
+ 	width:100%;
+
+
+ 	width: 100%;
+    height: auto;
+    box-sizing: content-box;
+    display: flex;
+    /*background-color: red;*/
+    padding: 10px;
+ }
+
  #cwd-map-wrap-frontend {
- 	height: 400px;
+ 	min-height: 400px;
+ 	height:auto;
 	width: 100%;
 	position: relative; 
  	overflow: hidden;
@@ -14,18 +28,30 @@
  }
 
 div.cwd-table-wrap {
-	overflow-x: auto;
+	box-sizing:content-box;
+	margin-left:auto;
 }
 
 div.cwd-table-wrap th a span{
 	text-transform:capitalize;
 }
 
+div.cwd-table-wrapper {
+	overflow-x: scroll;
+	padding:0 1px 0 1px;
+	display: block;
+	width: 100%;
+}
+
 .tablenav {
 	clear: both;
-	height: 30px;
+	height: 2.5em;
 	margin: 6px 0 4px;
 	vertical-align: middle;
+}
+
+.tablenav .top {
+	margin: 20px 0 5px;
 }
 
 .tablenav form input {
@@ -46,6 +72,8 @@ div.cwd-table-wrap th a span{
 	float: right;
 	height: auto;
 	margin-top: 3px;
+	margin-bottom: 3px;
+	display: block;
 	cursor: default;
 	color: #555;
 
@@ -95,7 +123,13 @@ a.cwd-link-marker:hover {
 
 table.widefat {
     border: 1px solid #e5e5e5;
+    border-collapse: collapse;
     background:#fff;
+}
+
+table tr {
+	border-collapse: collapse;
+	/* Does this fix for Google Chrome??? */
 }
 
  .striped > tbody > :nth-child(2n+1) {
@@ -136,3 +170,32 @@ a span:hover{
 	border-radius: 3px;
 	margin-left:3px;
 }
+
+input::placeholder {
+	color:#bbb;
+}
+
+#no-results-row td{
+	text-align:center;
+}
+
+@media only screen and (max-width: 900px) {
+	#cwd-map-wrap-frontend {
+		float:none !important;
+		width:100% !important;
+	}
+	.cwd-table-wrap {
+		float:none !important;
+		width:100% !important;
+	}
+
+	#cwd-frontend-box {
+		display: inline-block;
+	}
+}
+@media only screen and (max-width: 390px) {
+	.displaying-num {
+		display:none;
+	}
+}
+

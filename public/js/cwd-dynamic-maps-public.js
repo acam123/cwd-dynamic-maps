@@ -29,7 +29,7 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
-	var map, markers, markerCluster, selectMarker, openInfoWindow;
+	var map, markers, markerCluster, selectMarker, openInfoWindow, declusteredMarker, searched;
 
 	$(function () {
 		// PHP table data sent from wp_localize_scripts function in class-cwd-dynamic-maps-admin.php 
@@ -40,6 +40,7 @@
 	 * Make Pagination for Table
 	 */
 
+	searched = false;
 	$(function() {
 
 		if (/*markers.length > 0*/ true) {
@@ -50,9 +51,10 @@
 
 		 	var wrap = $('.cwd-table-wrap');
 
+
 		 	var form = $('<form>');
-		 	var input = $('<input>').attr('type', 'text').attr('name', 'cwd-marker-filter').attr('placeholder', 'Search...').attr('value', '');
-		 	var inputButton = $('<button>').addClass('button button-primary').attr('id', 'cwd-marker-filter-button').attr('type', 'button').html('Filter');
+		 	var input = $('<input>').attr('type', 'text').attr('name', 'cwd-marker-filter').attr('placeholder', 'E.g. Smith, 1788').attr('value', '');
+		 	var inputButton = $('<button>').addClass('button button-primary').attr('id', 'cwd-marker-filter-button').attr('type', 'button').html('Search');
 
 		 	var tableNavTop = $('<div>').addClass('tablenav top');
 		 	var leftActions = $('<div>').addClass('alignleft  bulkactions');
@@ -75,6 +77,7 @@
 		 	var nextSpan = $('<span>').html('&rsaquo;');
 
 		 	//var tableNavBottom = $('<div>').addClass('tablenav bottom');
+
 
 		 		toFirstPage.append(firstSpan);
 		 	pageLinks.append(toFirstPage);
@@ -100,6 +103,7 @@
 		 	tableNavTop.append(leftActions);
 		 	tableNavTop.append(navPages);
 		 	wrap.append(tableNavTop);
+		 	
 		}
 	})
 
@@ -109,6 +113,7 @@
 	 $(function () {
 	 	var wrap = $('.cwd-table-wrap');
 
+	 	var tableWrapper = $('<div>').attr('class', 'cwd-table-wrapper'); 
 	 	var table = $('<table>').addClass('widefat striped marker-sorter');
 	 	var tHead = $('<thead>'); 
 	 	var tBody = $('<tbody>'); 
@@ -120,11 +125,18 @@
 	 	var row, th, a, sLabel, sArrow, td, x, y, i, j;
 		for (x in firstRow) if (firstRow.hasOwnProperty(x)) {++numCols; colNames.push(x);}
 
+		// Remove longitude and latitude columns from table
+		colNames.splice(colNames.indexOf('latitude'),1);
+		colNames.splice(colNames.indexOf('longitude'),1);
+		colNames.splice(colNames.indexOf('Burial_Site_Number'),1);
+		numCols = numCols - 3;
+
+
 		//Fill tHead & tFoot
 	 	row = $('<tr>');
 	 	for (y=0; y<numCols; ++y) {
 	 		var colName = colNames[y];
-	 		th = $('<th>').attr('data-cwd-col', colName).attr('scope', 'col').addClass('sortable desc cwd-sortable-col');
+	 		th = $('<th>').attr('data-cwd-col', colName).attr('scope', 'col').addClass('sortable asc cwd-sortable-col');
 	 		if ($.isNumeric(firstRow[colName])) {
 	 			th.addClass('cwd_number');
 	 		}
@@ -171,13 +183,24 @@
  					td.text(markers[i][colName]);
  				}
 
-	 			row.append(td);	
+	 			row.append(td);
+
 	 		}
-	 		table.append(row);
+	 		//table.append(row);
+	 		table.prepend(row);
 	 	}
 	 	table.append(tFoot);
 
-	 	wrap.append(table);
+	 	tableWrapper.append(table);
+	 	wrap.append(tableWrapper);
+
+
+	 	var howTo = $("<div>").text("This is how you use the plugin...").attr("id", "howTo");
+	 	wrap.append(howTo);
+
+	 	$(".tablenav-pages").hide();
+	 	$(".marker-sorter").hide();
+
 	 });
 
 	 /*
@@ -225,6 +248,15 @@
 	 	* Pagination Functions
 	 	*/
 	 	function paginate() {
+
+	 		//Remove noResultsRow if exists
+	 		var noResultsTr;
+			var tbody = $(".marker-sorter tbody");
+			noResultsTr = tbody.find("#no-results-row");
+			if ( noResultsTr ) {
+				noResultsTr.remove();
+			}
+
 			
 			rows.hide();
 			matchedRows = rows.filter('.cwd-match');
@@ -328,6 +360,14 @@
 
 			};
 
+			// add noResultsRow if 0 results
+			if ( numRows === 0 ) {
+				noResultsTr = $("<tr>").attr("id", "no-results-row");
+				var noResultsTd = $("<td>").text('No Results Found').attr("colspan", "100");
+				noResultsTr.append(noResultsTd);				
+				tbody.append(noResultsTr);
+			}
+
 		}//End Paginate
 
 		paginate();
@@ -337,10 +377,18 @@
 		 * Filter Markers
 		 */
 		$("#cwd-marker-filter-button").click( function(event){
+
+			searched = true;
+			$("#howTo").hide();
+			//alert(searched);
+			$(".marker-sorter").show();
+			$(".tablenav-pages").show();
+
 			var filter = $("input[name='cwd-marker-filter']").val().toLowerCase();
 		//	$(".marker-sorter tbody tr").filter(function() {
 		//		$(this).toggle($(this).text().toLowerCase().indexOf(filter) > -1)
 		//	})
+			
 
 			$(".marker-sorter tbody tr").each( function() {
 				
@@ -356,7 +404,11 @@
 				}
 
 			})
+
+
 			paginate();
+
+			
 		});
 		
 
@@ -416,11 +468,13 @@
 	}) //End of Pagination Functions 
 
 
+
 	/*
 	 * Give Table Entry Links Actions on the Map
 	 */
 
 	 $(function () {
+
 		$(".cwd-link-marker").click( function(event) {
 			var a = $(this);
 			var sibs = a.parent().siblings();
@@ -489,15 +543,55 @@
 		})
 	})
 
-
-
 	function initMap() {
 		var options = {
 				zoom:18,
-				center:{lat:42.306492,lng:-71.530936} 
+				minZoom:18,
+				center:{lat:42.306492,lng:-71.530936},
+				mapTypeId: 'hybrid',
+				tilt: 45,
+				heading: 90
+ 
 		}
 
 		map = new google.maps.Map(document.getElementById('cwd-map-wrap-frontend'), options); 
+
+		
+		// Draw Boundry on Map
+		var boundaryCoordinates = [
+		    {lat: 42.307095, lng: -71.530954},
+		    {lat: 42.307088, lng: -71.530537},
+		    {lat: 42.305927, lng: -71.530457},
+		    {lat: 42.305943, lng: -71.531333},
+		    {lat: 42.306230, lng: -71.531317},
+		    {lat: 42.307095, lng: -71.530954}
+		];
+		var boundary = new google.maps.Polyline({
+		    path: boundaryCoordinates,
+		    geodesic: true,
+		    strokeColor: '#FF0000',
+		    strokeOpacity: 1.0,
+		    strokeWeight: 2
+		});
+
+		boundary.setMap(map);
+
+		
+		// Listen for Map Drags and Limit Range by ReCentering
+		var MapBounds = new google.maps.LatLngBounds(
+    		new google.maps.LatLng(42.305394, -71.532197),
+    		new google.maps.LatLng(42.307113, -71.529668)
+    	);
+
+
+		google.maps.event.addListener(map, 'dragend', function () {
+	        if (MapBounds.contains(map.getCenter())) {
+	            return;
+	        }
+	        else {
+	            map.setCenter(new google.maps.LatLng(42.306492, -71.530936));
+	        }
+	    });
 
 
 		var cluster = [];
@@ -509,7 +603,7 @@
 			//console.log(markers[i]);
 		}
 
-		
+
 
 		// Add Marker Function
 		function addMarker(m){
@@ -522,7 +616,7 @@
 				position:coords,
 				cwd_id:m.id,
 				cwd_name:m.Name,
-				cwd_No:m.No,
+				cwd_No:m.Burial_Site_Number,
 				cwd_Death:m.Death
 			});
 			cluster.push(marker); // AIDAN!!! REINSTATE THIS AFTER ADDING MARKERS TO HAVE CLUSTER 
@@ -535,7 +629,7 @@
 			if (true /*m.description*/){
 				var infoWindow = new google.maps.InfoWindow({
 			    	content:'<h4>'+m.Name+'</h4>'
-			    		+'<p>No. '+m.No+'</p>'
+			    		+'<p>No. '+m.Burial_Site_Number+'</p>'
 			    		+'<p>Date: '+m.Death+'</p>'
 				});
 
@@ -561,6 +655,7 @@
 						userMarker = null;
 						
 					}*/
+					
 				});
 
 
@@ -571,11 +666,13 @@
 							zoomOnClick: false,
 							averageCenter: true,
 							imagePath: '../wp-content/plugins/cwd-dynamic-maps/admin/img/m',
-							gridSize: 40
+							gridSize: 40, //
+							maxZoom: 21, //On smallest possible zoom force all markers to be shown
 						};
 		markerCluster = new MarkerClusterer(map, cluster, mcOptions);
 
 		//console.log( markerCluster.getMarkers() );
+
 
 		/*
 		 * Listen for Map Click and User Marker There
@@ -619,13 +716,18 @@
 			
 
 
+
 			for (var i=0; i<clusterSize; i++) {
 				cluster_ids.push(clustersMarkers[i].cwd_id);
 				var tmp = markers.find(function (obj) { return obj.id == clustersMarkers[i].cwd_id; });
 				clustersMarkersData.push(tmp);
-				clusterDescription += '<b>'+tmp.No +'</b>, '+tmp.Name+ ', ' +tmp.Death+ '<br>';
+				clusterDescription += '<a class="cwd-cluster-link" id="'+tmp.id+'" >'+tmp.Burial_Site_Number +'</a>, '+tmp.Name+ ', ' +tmp.Death+ '<br>';
+
+				//console.log(tmp);
+
 			}
 
+			
 
 			var infoWindow = new google.maps.InfoWindow({
 			    	content:''
@@ -643,6 +745,14 @@
 
 		// Listen for click on map
 		map.addListener('click', function(event) {
+
+
+			/* If exists Add declusteredMarker back into Clusterer */
+			if (declusteredMarker !=null) {
+						declusteredMarker.setMap(null);
+						markerCluster.addMarker(declusteredMarker);
+						declusteredMarker = null;
+			}
 
 			//var tmp = Object.entries(event);
 
@@ -726,9 +836,59 @@
     	});
 
 
+		/* Decluster Selected Markers on Link Click */
+		$(document).on('click', '.cwd-cluster-link', function(event){
+    		//alert($(this).text());
+    		//console.log($(this));
+
+    		//console.log('Markers');
+    		//console.log(markers);
+
+
+    		/* If exists Add declusteredMarker back into Clusterer */
+			if (declusteredMarker != null) {
+						declusteredMarker.setMap(null);
+						markerCluster.addMarker(declusteredMarker);
+						declusteredMarker = null;
+			}
+
+    		// NOTE id is the unique id from the database, not the user defined No.
+    		var link_id = $(this).attr('id');
+    		//var selected_marker= markers.find(function (obj) { return obj.id == link_id } );
+    		
+    		//console.log(cluster);
+    		//console.log(markerCluster.getMarkers());
+    		declusteredMarker = cluster.find(function (obj) { return obj.cwd_id == link_id } );
+    		//console.log(selected_marker);
+
+    		
+    		markerCluster.removeMarker(declusteredMarker);
+    		console.log(markerCluster);
+    		markerCluster.redraw();
+
+    		//declusteredMarker.setZIndex(100000);
+    		//declusteredMarker.setOpacity(1);
+
+    		declusteredMarker.setMap(map);
+
+    		//console.log("Z INDEX:");
+    		//console.log( declusteredMarker.getZIndex() );
+
+
+    		new google.maps.event.trigger(declusteredMarker, 'click');
+			map.setCenter(declusteredMarker.getPosition());
+
+			console.log(markerCluster.getPanes());
+
+
+		});
+
+
 
 
 	} //End initMap()
+
+
 
 	// Get Map
 	if (typeof google === 'object' && typeof google.maps === 'object') {
@@ -739,5 +899,6 @@
 	         $(initMap);
 	     });
 	}
+
 
 })( jQuery );
