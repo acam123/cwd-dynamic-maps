@@ -102,7 +102,13 @@ class Cwd_Dynamic_Maps_Public {
 
 		// Pass PHP to public JS
 			// cwd_php_vars
-			wp_localize_script( $this->plugin_name/*.'-public-js'*/, 'cwd_php_vars', stripslashes(wp_json_encode(Cwd_Dynamic_Maps_Marker_Table::get_table_data_by_cols(Cwd_Dynamic_Maps_Marker_Table::get_table_cols_clean_3() ))) ); 
+			$markers = new Cwd_Dynamic_Maps_Marker_Table(1);
+			wp_localize_script( $this->plugin_name/*.'-public-js'*/, 'cwd_php_vars', stripslashes(wp_json_encode($markers->get_table_data_by_cols($markers->get_table_cols_clean_3() ))) );
+
+			// map_options
+			$maps = new Cwd_Dynamic_Maps_Map_Table();
+			wp_localize_script($this->plugin_name, 'cwd_map_options', stripslashes(wp_json_encode($maps->get_table_data())));
+ 
 			// Api Key
 			wp_localize_script( $this->plugin_name /*.'-public-js'*/, 'cwd_api_key', get_option('cwd_dynamic_maps_option_api_key') );
 

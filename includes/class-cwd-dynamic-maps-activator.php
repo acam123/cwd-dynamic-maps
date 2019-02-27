@@ -31,8 +31,9 @@ class Cwd_Dynamic_Maps_Activator {
 	 */
 	public static function activate() {
 		update_option( 'CWD_DYNAMIC_MAPS_VERSION', CWD_DYNAMIC_MAPS_VERSION);
-		Cwd_Dynamic_Maps_Marker_Table::create_table();
-		Cwd_Dynamic_Maps_Map_Table::create_table();
+		//Cwd_Dynamic_Maps_Marker_Table::create_table();
+		$maps = new Cwd_Dynamic_Maps_Map_Table();
+		$maps->create_table();
 		flush_rewrite_rules();
 
 	}

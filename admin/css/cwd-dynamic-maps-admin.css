@@ -3,11 +3,69 @@
  * included in this file.
  */
 
+ #cwd-map-selection-form table {
+ 	overflow-x:scroll;
+ 	display:block;
+ }
+
  #map-wrap {
  	height:400px; 
  	width:100%;
  	position: relative; 
  	overflow: hidden;
+ }
+
+#map-settings-form {
+}
+
+#table-map-settings-form {	
+}
+
+.cwd-button-wrap {
+	display:inline-block;
+	width:100%;
+}
+
+.cwd-hidden {
+	overflow:hidden;
+}
+
+.cwd-marker-data-span {
+	height:100px;
+}
+
+.cwd-right { 
+	float:right;
+}
+
+.cwd-left {
+	float:left;
+}
+
+.cwd-admin-block {
+	background-color:white; 
+	padding:10px 10px 10px 20px;
+ 	margin: 10px 0 10px 0; 
+ 	border: 1px solid #e5e5e5; 
+ 	box-shadow: 0 1px 1px rgba(0,0,0,.04); 
+}
+
+.cwd-import-export-section {
+}
+
+.cwd-import-export-section h1 {
+	padding-top: 0px;
+}
+
+#col-name-plus-minus {
+	visibility: hidden;
+}
+
+.new-marker-form {
+}
+
+ tr#map_id{
+ 	display:none;
  }
 
  .cwd-map-button-panel {
@@ -21,8 +79,20 @@ div.cwd-table-wrap th a span{
 	text-transform:capitalize;
 }
 
+a.cwd-link-marker {
+	cursor:pointer;
+}
+
+a.cwd-link-map {
+	cursor:pointer;
+}
+
 .tablenav-pages-navspan{
 	margin-right:4px;
+}
+
+#cwd-form-button {
+	float:right;
 }
 
 #cwd-form-id span{
@@ -38,5 +108,14 @@ div.cwd-table-wrap th a span{
 	resize:both;
 }
 
+#cwd-cols-form-button {
+	visibility: hidden;
+}
 
+p.search-box {
+	position: static!important;
+}
 
+td.no-selection-td {
+	width:100%;
+}

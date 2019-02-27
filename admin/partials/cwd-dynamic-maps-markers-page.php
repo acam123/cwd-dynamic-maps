@@ -12,11 +12,12 @@
  */
 
 ?>
-<div class="wrap"> 
-	<h1>Add/Edit Markers</h1>
 
-	<div id="cwd-import-export" style="overflow:hidden; background-color:white; padding:20px; margin-bottom:10px; border: 1px solid #e5e5e5; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-		<h1 style="padding-top:0px;">Import Markers</h1>
+<div class="wrap"> 
+	<h1>Edit Markers</h1>
+
+	<div id="cwd-import-export" class="cwd-import-export-section cwd-admin-block">
+		<h1>Import Markers</h1>
 		</br>
 		<form id="cwd-import-form" method="post" enctype="multipart/form-data">
 			<input type="file" name="file" id="file">
@@ -35,9 +36,10 @@
 
 	<div id='cwd-markers-div' >
 		<?php 
-			$table_headers = Cwd_Dynamic_Maps_Marker_Table::get_table_header_clean();
+			$markers = new Cwd_Dynamic_Maps_Marker_Table(1);
+			$table_headers = $markers->get_table_header_clean();
 			$num_cols = count($table_headers);
-			$table_data = Cwd_Dynamic_Maps_Marker_Table::get_table_data();
+			$table_data = $markers->get_table_data();
 		?>
 		<div id='cwd-add-edit-marker-description'>
 			<p>
@@ -50,7 +52,7 @@
 			</p>
 		</div>
 		<div id='new-marker-div'>
-			<form method="post" id="cwd-form-id" style="background-color:white; overflow:hidden; padding:10px; margin-bottom:10px; border: 1px solid #e5e5e5; box-shadow: 0 1px 1px rgba(0,0,0,.04);" > 
+			<form method="post" id="cwd-form-id" class="cwd-admin-block" > 
 				<h1 id="update-marker-form-label">Add Marker</h1>
 				<table id="new-marker-table" class="">
 					<tr valign="top">
@@ -84,11 +86,9 @@
 					</tr>
 				</table>
 					<?php
-						$input_fields_type = ['input', 'input', 'input', 'input', 'input', 'input', 'input', 'textarea' ];
-						$data_types = Cwd_Dynamic_Maps_Marker_Table::get_data_types();
+						$data_types = $markers->get_data_types();
 
-
-						$string = '<div style="overflow:hidden;">'; 
+						$string = '<div class="cwd-hidden">'; 
 						$string .='<input name="id" type="hidden" value=""></input>';
 						for ($i=0; $i<$num_cols; $i++) {
 							$name = $table_headers[$i];
@@ -102,7 +102,7 @@
 								}
 							}
 
-							$string .= '<span>';
+							$string .= '<span class="cwd-marker-data-span">';
 							$string .= '<h4 class="cwd-form-titles">';
 							$string .= ucwords( str_replace('_', ' ', $name) );
 							$string .= '</h4>';
@@ -114,7 +114,9 @@
 						echo $string;
 					?>
 					
-		        	<button id="cwd-form-button" type="button" class="button button-primary" style="float:right;">Save Marker</button>
+		        	<div class="cwd-button-wrap">
+		        		<button id="cwd-form-button" type="button" class="button button-primary cwd-right">Save Marker</button>
+		        	</div>
 			</form>
 		</div>
 		<div id="map-wrap"></div>

@@ -113,10 +113,19 @@ class Cwd_Dynamic_Maps_Admin {
 			// Ajax for sending data to PHP/database 
 			wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_ajax_url', admin_url( 'admin-ajax.php' ) );
 
-			// Table Data
-			wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_php_vars', stripslashes(wp_json_encode(Cwd_Dynamic_Maps_Marker_Table::get_table_data_by_cols(Cwd_Dynamic_Maps_Marker_Table::get_table_cols_clean_3() ))) ); 
+			// Marker Table Data
+			$markers = new Cwd_Dynamic_Maps_Marker_Table(1);
+			$maps = new Cwd_Dynamic_Maps_Map_Table();
+
+			wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_php_vars', stripslashes(wp_json_encode($markers->get_table_data_by_cols($markers->get_table_cols_clean_3() ))) ); 
+
+			//wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_php_vars', stripslashes(wp_json_encode(Cwd_Dynamic_Maps_Marker_Table::get_table_data_by_cols(Cwd_Dynamic_Maps_Marker_Table::get_table_cols_clean_3() ))) ); 
+
 			// Api Key
 			wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_api_key', get_option('cwd_dynamic_maps_option_api_key') );
+
+			// Map Table Data
+			wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_map_data', stripslashes(wp_json_encode($maps->get_table_data() )) );
 
 
 
@@ -128,6 +137,7 @@ class Cwd_Dynamic_Maps_Admin {
         add_menu_page( 'CWD Maps Settings Page', 'CWD Maps Settings', 'manage_options', 'cwd_maps_settings', array( $this, 'create_settings_page' ), 'dashicons-layout', 70 );
         add_submenu_page( 'cwd_maps_settings', 'Settings Page', 'Settings', 'manage_options', 'cwd_maps_settings', array( $this, 'create_settings_page' ) );
         add_submenu_page( 'cwd_maps_settings', 'Markers Page', 'Markers', 'manage_options', 'cwd_maps_markers_edit', array( $this, 'create_markers_page' ) );
+        add_submenu_page( 'cwd_maps_settings', 'Groups Page', 'Groups', 'manage_options', 'cwd_maps_groups_edit', array( $this, 'create_groups_page' ) );
         add_submenu_page( 'cwd_maps_settings', 'Maps Page', 'Maps', 'manage_options', 'cwd_maps_maps_edit', array( $this, 'create_maps_page' ) );
     }
 
@@ -139,6 +149,10 @@ class Cwd_Dynamic_Maps_Admin {
     	include_once CWD_DYNAMIC_MAPS_PLUGIN_DIR.'/admin/partials/cwd-dynamic-maps-markers-page.php';
     }
 
+    function create_groups_page() {
+    	include_once CWD_DYNAMIC_MAPS_PLUGIN_DIR.'/admin/partials/cwd-dynamic-maps-groups-page.php';
+    }
+
     function create_maps_page() {
     	include_once CWD_DYNAMIC_MAPS_PLUGIN_DIR.'/admin/partials/cwd-dynamic-maps-maps-page.php';
     }
@@ -146,7 +160,8 @@ class Cwd_Dynamic_Maps_Admin {
     // Add Links to Plugin Listing on the Plugins Page
     function create_action_links( $links ) {
 		$new_links = ['<a href="admin.php?page=cwd_maps_settings">Settings</a>', 
-					  '<a href="admin.php?page=cwd_maps_markers_edit">Markers</a>', 
+					  '<a href="admin.php?page=cwd_maps_markers_edit">Markers</a>',
+					  '<a href="admin.php?page=cwd_maps_groups_edit">Groups</a>',
 					  '<a href="admin.php?page=cwd_maps_maps_edit">Maps</a>'
 					  ];
 		foreach ($new_links as $new_link) {
@@ -156,28 +171,88 @@ class Cwd_Dynamic_Maps_Admin {
 	}
 
 	// Add Ajax Handler 
-	// ***??? Can we make this a wrapper and move the code to ...Table::...()
+	// *** !!! Get ARG for marker table num !!! ***
 	function cwd_ajax_handler() {
 		$param = isset($_REQUEST['param']) ? $_REQUEST['param'] : "";
 		if (!empty($param) && $param == "update_marker") {
 			//print_r($_REQUEST);
 			$args=$_REQUEST;
-			$response = Cwd_Dynamic_Maps_Marker_Table::update_marker($args);
+			$marker_obj = new Cwd_Dynamic_Maps_Marker_Table(1);
+			$response = $marker_obj->update_marker($args);
 
 			if($response === false) {
-				$response = 'Error: Marker Update failed';
+				$response = 'Error: Marker update failed';
 			}
 			else {
 				$response = (string)$response . ' marker(s) successfully updated';
 			}
 		}
+
+		else if (!empty($param) && $param == "update_map") {
+			$args=$_REQUEST;
+			$map_obj = new Cwd_Dynamic_Maps_Map_Table();
+			$response = $map_obj->update_map($args);
+			if($response === false) {
+				$response = 'Error: Map update failed';
+			}
+			else {
+				$response = (string)$response . ' map(s) successfully updated';
+			}
+		}
+
+		else if (!empty($param) && $param == "update_marker_cols") {
+			$args=$_REQUEST;
+			$marker_group = $args['marker_group'];
+			$marker_obj = new Cwd_Dynamic_Maps_Marker_Table($marker_group);
+			$response = $marker_obj->update_marker_cols($args);
+			if($response === false) {
+				$response = 'Error: Marker columns update failed';
+			}
+			else {
+				//$response = $response . ' Marker columns successfully updated';
+			}
+		}
+		
+		else if (!empty($param) && $param == "select_group") {
+			$args=$_REQUEST;
+			$marker_group = $args['marker_group'];
+			$marker_obj = new Cwd_Dynamic_Maps_Marker_Table($marker_group);
+			$col_options = $marker_obj->get_table_cols_clean_2();
+
+			$response = '';
+
+			foreach ($col_options as $key => $val) {
+				$response .= '<tr>
+					<td>
+						<input type="text" class="regular-text" name="cwd_form_data_curr_cols_'.esc_attr($val).'" value="'. str_replace('_', ' ', esc_attr($val)).'" />
+					</td>
+					<td>
+						<input type="button" class="cwd_options_remove_table_col_button cwd-left button button-secondary" value="Delete"/> 
+					</td>
+				</tr>';
+			}
+
+		}
+
 		else {
-			$response = 'Error: Marker Update was unable to be completed';
+			$response = 'There was an error with your request';
 		}
 
 		print_r($response);
 		wp_die();
 	}
+
+	// Ajax for map selection on map edit page 
+	/*function cwd_ajax_handler_map_selector() {
+		$param = isset($_REQUEST['param']) ? $_REQUEST['param'] : "";
+		if (!empty($param) && $param == "select_map") {
+			$args=$_REQUEST;
+		}
+		$response = 'Map Chosen';
+		print_r($response);
+		wp_die();
+
+	}*/
 
 	// Register these Settings in the wp_options table
     function register_admin_settings() {

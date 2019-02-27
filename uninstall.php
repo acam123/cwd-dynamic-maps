@@ -33,7 +33,14 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 delete_option('CWD_DYNAMIC_MAPS_VERSION');
 
 global $wpdb;
-$table_name = $wpbd->prefix.'cwd_dynamic_maps_data';
+$table_name = $wpbd->prefix.'cwd_dynamic_maps_marker_data';
+$table_names = ( (count($wpdb->get_var("Show tables like'".$table_name."%'")) > 0 ) ? $wpdb->get_var("Show tables like'".$table_name."%'"): array() );
+
+foreach ($table_names as $table_name) {
+	$wpdb->query("DROP table IF EXISTS $table_name");
+}
+
+$table_name = $wpbd->prefix.'cwd_dynamic_maps_map_data';
 $wpdb->query("DROP table IF EXISTS $table_name");
 
 

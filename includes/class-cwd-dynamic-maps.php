@@ -172,11 +172,28 @@ class Cwd_Dynamic_Maps {
 
 		//$this->loader->add_action( 'admin_init', $plugin_admin, 'download_csv' );
 		//$this->loader->add_action( 'admin_init', new Cwd_Dynamic_Maps_Marker_Table(), 'export_markers' );
+
+		
+
+		/*
 		$this->loader->add_action( 'admin_init', 'Cwd_Dynamic_Maps_Marker_Table', 'export_markers' );
 		$this->loader->add_action( 'admin_init', 'Cwd_Dynamic_Maps_Marker_Table', 'import_markers' );
+		$this->loader->add_action( 'admin_init', 'Cwd_Dynamic_Maps_Map_Table', 'export_maps' );
+		$this->loader->add_action( 'admin_init', 'Cwd_Dynamic_Maps_Map_Table', 'import_maps' );
+		*/
+		
 
+		// !!!! THESE SHOULD BE AJAXified !!!!
+		$marker_table_admin = new Cwd_Dynamic_Maps_Marker_Table(1);
+		$map_table_admin = new Cwd_Dynamic_Maps_Map_Table();
 
-		$this->loader->add_action( 'admin_init', 'Cwd_Dynamic_Maps_Marker_Table', 'cwd_settings_update');
+		$this->loader->add_action( 'admin_init', $marker_table_admin, 'export_markers' );
+		$this->loader->add_action( 'admin_init', $marker_table_admin, 'import_markers' );
+		$this->loader->add_action( 'admin_init', $map_table_admin, 'export_maps' );
+		$this->loader->add_action( 'admin_init', $map_table_admin, 'import_maps' );
+
+		// moved cwd_settings_update to branch from ajax call
+		//$this->loader->add_action( 'admin_init', 'Cwd_Dynamic_Maps_Marker_Table', 'cwd_settings_update');
 
 
 	}

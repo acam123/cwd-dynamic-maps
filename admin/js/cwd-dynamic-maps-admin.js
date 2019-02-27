@@ -30,8 +30,119 @@
 	 */
 
 
+	/*
+	 * Select Map for Map Settings Form
+	 */
+	$(function() {
+
+		$(".cwd-edit-action-map-settings-form").click( function(event) {
+			var thisLink = $(this);
+			var map_id = thisLink.attr('data-map_id');
+			var map_data = JSON.parse(cwd_map_data);
+			var selectedMap = map_data.find(function (obj) { return obj.id == map_id; } );
+
+			// Fill Map Form
+			var map_settings_table = $("#map-settings-form table");	
+			var td_map_title = map_settings_table.find('th[id="title"] h1').text('Edit Map Settings');
+
+			var tr_map_id = map_settings_table.find('tr[id="map_id"]').show();
+			var td_map_id_text = tr_map_id.find('td span').text(map_id);
+			var td_map_id_input = tr_map_id.find('td input').val(map_id);
+
+			var td_map_name = map_settings_table.find('td[id="map_name"] input').val( selectedMap['mapName'].replace(/_/g, ' ') );
+			var td_map_center_lat = map_settings_table.find('td[id="center_lat"] input').val( selectedMap['centerLat'] );
+			var td_map_center_lng = map_settings_table.find('td[id="center_lng"] input').val( selectedMap['centerLng'] );
+			var td_map_zoom = map_settings_table.find('td[id="zoom"] input').val( selectedMap['zoom'] );
+			var td_map_min_zoom = map_settings_table.find('td[id="min_zoom"] input').val( selectedMap['minZoom'] );
+			var td_map_max_zoom = map_settings_table.find('td[id="max_zoom"] input').val( selectedMap['maxZoom'] );
+			var td_map_type_id = map_settings_table.find('td[id="map_type_id"] div input').filter('[value="'+selectedMap["mapTypeId"]+'"]').attr('checked', true);	
+			var td_map_tilt = map_settings_table.find('td[id="tilt"] input').filter('[value="'+selectedMap["tilt"]+'"]').attr('checked', true);
+			var td_map_heading = map_settings_table.find('td[id="heading"] input').filter('[value="'+selectedMap["heading"]+'"]').attr('checked', true);
+			var td_map_north_bound = map_settings_table.find('td[id="north_bound"] input').val( selectedMap['northBound'] );
+			var td_map_east_bound = map_settings_table.find('td[id="east_bound"] input').val( selectedMap['eastBound'] );
+			var td_map_south_bound = map_settings_table.find('td[id="south_bound"] input').val( selectedMap['southBound'] );
+			var td_map_west_bound = map_settings_table.find('td[id="west_bound"] input').val( selectedMap['westBound'] );
+			var td_map_polyline = map_settings_table.find('td[id="polyline"] input').val( selectedMap['polyline']);//.replace(/\\/g, '') );
+		})
+
+	});
+
+	/*
+	 * Select Group for Marker cols Edit Form
+	 */
+
+	 $(function() {	
+		$(".cwd-edit-action-group-settings-form").click( function(event) {
+
+			var map_id = 1;
+			var thisLink = $(this);
+			var groupNum = thisLink.attr('data-group_number');
+			
+			// Update Marker Cols Form
+			var marker_cols_form = $("#cwd-marker-cols-update-form");	
+			var marker_hidden_input = marker_cols_form.find('input[name="marker_group"]').val(groupNum);
+			var plus_minus = $("#col-name-plus-minus").css("visibility", "visible");
+			var update_cols_button = $("#cwd-cols-form-button").css("visibility", "visible");
+			var col_name_form_tbody = $("#cwd-tbody-col-name-form").empty();
+
+
+			var post_data = "marker_group="+groupNum+"&action=cwd_request&param=select_group";
+			$.post(cwd_ajax_url, post_data, function(response){
+		 		col_name_form_tbody.append(response);
+
+		 		// Add Delete Functionality (NOTE: must add after delivering the html for the buttons)
+			 	$(".cwd_options_remove_table_col_button").click(function(event) {
+			 		var input = $(this).parent().siblings().find('input');
+			 		var name = input.attr('name');
+
+			 		if ($(this).val() == 'Delete') {
+				 		name = name.split("cwd_form_data_curr_cols_")[1];
+				 		var res = confirm("Are you sure you want to delete "+name);
+
+						if (res) {
+							alert('This column will be permanently deleted from the database when you click save');
+							$(this).parent().parent().css('background-color', 'red');
+							$(this).val('Undo');
+				 			var newName = "cwd_form_data_delete_cols_";
+				 			newName += name;
+				 			input.attr('name', newName);
+				 		}
+				 	}
+				 	else {
+				 		name = name.split("cwd_form_data_delete_cols_")[1];
+				 		$(this).parent().parent().css('background-color', '');
+				 		$(this).val('Delete');
+				 		var newName = "cwd_form_data_curr_cols_";
+				 		newName += name;
+				 		input.attr('name', newName);
+				 	}
+		 		})// End of action on .cwd_options_remove_table_col_button
+
+		 	})// End of $.post(...
+		})// End of form action on .cwd-edit-action-group-settings-form
+	});//End jQuery fuction 
+
+
 	/* 
-	 * Add Marker button - calls on button click by including cwd-form-button in button tag 
+	 * Update Map button - calls on button click by including cwd-map-form-button in button tag 
+	 * NOTE: avoids page refresh of wordpress defined submit_button();
+	 */
+	$(function () {
+		 $("#cwd-map-form-button").click(function(){
+		 	var post_data = jQuery("#map-settings-form").serialize()+"&action=cwd_request&param=update_map";
+		 	$.post(cwd_ajax_url, post_data, function(response){
+		 		alert(response);
+		 		window.location.reload(true);
+		 		$(this).scrollTop(0);
+
+		 	})
+
+		 })
+	});
+
+
+	/* 
+	 * Update Marker button - calls on button click by including cwd-form-button in button tag 
 	 * NOTE: avoids page refresh of wordpress defined submit_button();
 	 */
 	$(function () {
@@ -43,6 +154,27 @@
 
 		 })
 	});
+
+
+	/* 
+	 * Update Cols for Marker button - calls on button click by including cwd-cols-form-button in button tag 
+	 * NOTE: avoids page refresh of wordpress defined submit_button();
+	 */
+	$(function () {
+		 $("#cwd-cols-form-button").click(function(){
+		 	var post_data = jQuery("#cwd-marker-cols-update-form").serialize()+"&action=cwd_request&param=update_marker_cols";
+		 	$.post(cwd_ajax_url, post_data, function(response){
+		 		alert(response);
+		 		window.location.reload(true);
+		 		window.scrollTo(0,0);
+
+		 	})
+
+		 })
+	});
+
+
+
 
 
 
@@ -69,7 +201,6 @@
 	 		var tbody = $('#cwd-tbody-col-name-form');
 	 		var last = $('#cwd-tbody-col-name-form tr:last');
 	 		var lastClass = last.find('td input[name^="cwd_form_data_add_cols_"]');
-	 		console.log(lastClass);
 
 	 		//check if a new row
 	 		if (lastClass.length >= 1) {
@@ -78,6 +209,7 @@
 	 		
 	 	})
 
+	 	/*
 	 	$(".cwd_options_remove_table_col_button").click(function(event) {
 
 	 		var input = $(this).parent().siblings().find('input');
@@ -106,6 +238,7 @@
 		 	}
 	 		
 	 	})
+	 	*/
 
 	 })
 
@@ -167,7 +300,7 @@
 		 	var tableNavTop = $('<div>').addClass('tablenav top');
 		 	var leftActions = $('<div>').addClass('alignleft  bulkactions');
 		 	var navPages = $('<div>').addClass('tablenav-pages');
-		 	var displayNum = $('<span>').addClass('displaying-num').html(numRows +' item(s)');
+		 	var displayNum = $('<span>').addClass('cwd-displaying-num').html(numRows +' item(s)');
 		 	var pageLinks = $('<span>').addClass('pagination-links');
 		 	var toFirstPage = $('<a>').addClass('tablenav-pages-navspan cwd-first');
 		 	var firstSpan = $('<span>').html('&laquo;');
@@ -175,9 +308,9 @@
 		 	var backSpan = $('<span>').html('&lsaquo;');
 		 	
 		 	var pagingInput = $('<span>').addClass('paging-input');
-		 	var pageInput = $('<input>').addClass('current-page').attr('id', 'current-page-selector').attr('type', 'text').attr('size', '1').val(1);
+		 	var pageInput = $('<input>').addClass('current-page').attr('id', 'cwd-current-page-selector').attr('type', 'text').attr('size', '1').val(1);
 		 	var pagingText = $('<span>').addClass('tablenav-paging-text').html('of ');
-		 	var maxPageText = $('<span>').addClass('total-pages').html(totalPages);
+		 	var maxPageText = $('<span>').addClass('cwd-total-pages').html(totalPages);
 
 		 	var toLastPage = $('<a>').addClass('tablenav-pages-navspan cwd-last');
 		 	var lastSpan = $('<span>').html('&raquo;'); 
@@ -311,18 +444,18 @@
 		var markerDiv = $('#cwd-markers-div');
 		statsDiv.attr('id', 'stats-div');
 		markerDiv.prepend(statsDiv);
-		var input = $('input[id="current-page-selector"]');
-		var maxPageText = $('span[class="total-pages"]');
-		var displayNum = $('span[class="displaying-num"]');
+		var input = $('input[id="cwd-current-page-selector"]');
+		var maxPageText = $('span[class="cwd-total-pages"]');
+		var displayNum = $('span[class="cwd-displaying-num"]');
 
 		*/
 
 		var addPageButtons;
 
 		var rows = $('div.cwd-table-wrap table tbody tr');
-		var input = $('input[id="current-page-selector"]');
-		var maxPageText = $('span[class="total-pages"]');
-		var displayNum = $('span[class="displaying-num"]');
+		var input = $('input[id="cwd-current-page-selector"]');
+		var maxPageText = $('span[class="cwd-total-pages"]');
+		var displayNum = $('span[class="cwd-displaying-num"]');
 		var maxPerPage = 3;
 		var matchedRows;
 		var numRows;

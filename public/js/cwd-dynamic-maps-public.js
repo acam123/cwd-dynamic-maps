@@ -195,7 +195,7 @@
 	 	wrap.append(tableWrapper);
 
 
-	 	var howTo = $("<div>").text("This is how you use the plugin...").attr("id", "howTo");
+	 	var howTo = $("<div>").text("This is how you use the plugin..." /*+ map_options[0] + '----------------------------' + jQuery.type(map_options[0])*/ ).attr("id", "howTo");
 	 	wrap.append(howTo);
 
 	 	$(".tablenav-pages").hide();
@@ -542,56 +542,101 @@
 			 
 		})
 	})
+	 	
 
 	function initMap() {
+
+		var map_options = JSON.parse(cwd_map_options);
+		var centerLat = parseFloat(map_options[0]['centerLat']);
+		var centerLng = parseFloat(map_options[0]['centerLng']);
+
+
+		var southBound = parseFloat(map_options[0]['southBound']);
+		var westBound = parseFloat(map_options[0]['westBound']);
+		var northBound = parseFloat(map_options[0]['northBound']);
+		var eastBound = parseFloat(map_options[0]['eastBound']);
+
 		var options = {
+				/*
 				zoom:18,
 				minZoom:18,
+				maxZoom:22,
 				center:{lat:42.306492,lng:-71.530936},
 				mapTypeId: 'hybrid',
 				tilt: 45,
 				heading: 90
+				*/
+				zoom: parseInt(map_options[0]['zoom']),
+				minZoom: parseInt(map_options[0]['minZoom']),
+				maxZoom: parseInt(map_options[0]['maxZoom']),
+				center: { lat: centerLat, lng: centerLng },
+				mapTypeId: map_options[0]['mapTypeId'],
+				tilt: parseInt(map_options[0]['tilt']),
+				heading: parseInt(map_options[0]['heading']),
+				restriction: {
+		        	latLngBounds: { north: northBound,
+        							south: southBound,
+        							west: westBound,
+        							east: eastBound,
+        			},
+		        	strictBounds: false,
+		        },
+
  
 		}
 
 		map = new google.maps.Map(document.getElementById('cwd-map-wrap-frontend'), options); 
 
 		
-		// Draw Boundry on Map
-		var boundaryCoordinates = [
+		// Draw polyline (outline) on Map 	
+		/*var polylineCoordinates = [
 		    {lat: 42.307095, lng: -71.530954},
 		    {lat: 42.307088, lng: -71.530537},
 		    {lat: 42.305927, lng: -71.530457},
 		    {lat: 42.305943, lng: -71.531333},
 		    {lat: 42.306230, lng: -71.531317},
 		    {lat: 42.307095, lng: -71.530954}
-		];
-		var boundary = new google.maps.Polyline({
-		    path: boundaryCoordinates,
-		    geodesic: true,
+		];*/
+
+		var polylineCoordinates = JSON.parse( map_options[0]['polyline'].replace(/;/g, ',') );	
+		var polyline = new google.maps.Polyline({
+		    path: polylineCoordinates,
+		    geodesic: false,
 		    strokeColor: '#FF0000',
 		    strokeOpacity: 1.0,
 		    strokeWeight: 2
 		});
-
-		boundary.setMap(map);
+		polyline.setMap(map);
 
 		
 		// Listen for Map Drags and Limit Range by ReCentering
-		var MapBounds = new google.maps.LatLngBounds(
-    		new google.maps.LatLng(42.305394, -71.532197),
-    		new google.maps.LatLng(42.307113, -71.529668)
+		/*
+		var southBound = parseFloat(map_options[0]['southBound']);
+		var westBound = parseFloat(map_options[0]['westBound']);
+		var northBound = parseFloat(map_options[0]['northBound']);
+		var eastBound = parseFloat(map_options[0]['eastBound']);
+
+		console.log(southBound+', '+westBound+', '+northBound+', '+eastBound);
+
+		var mapBounds = new google.maps.LatLngBounds(
+			new google.maps.LatLng(southBound, westBound),
+			new google.maps.LatLng(northBound, eastBound)
+    		
+    		//new google.maps.LatLng(42.305394, -71.532197),
+    		//new google.maps.LatLng(42.307113, -71.529668)
+    		
     	);
 
 
 		google.maps.event.addListener(map, 'dragend', function () {
-	        if (MapBounds.contains(map.getCenter())) {
+	        if (mapBounds.contains(map.getCenter())) {
 	            return;
 	        }
 	        else {
-	            map.setCenter(new google.maps.LatLng(42.306492, -71.530936));
+	            map.setCenter(new google.maps.LatLng(centerLat, centerLng));
 	        }
 	    });
+	    */
 
 
 		var cluster = [];

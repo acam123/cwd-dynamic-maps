@@ -15,9 +15,6 @@
 <div class="wrap"> 
 	<h1>Edit CWD Maps</h1>
 
-	<div id="php-table-data"></div>
-
-	<form id="map-settings-form" method="post">
 	<!--
 		<table>
 			<tr>
@@ -35,96 +32,216 @@
 			</tr>
 		</table>
 	-->
-		<table id="table-map-settings-form" class="form-table" style="background-color:white; overflow:hidden; padding:10px; margin-bottom:10px; border: 1px solid #e5e5e5; box-shadow: 0 1px 1px rgba(0,0,0,.04); display:block;">
+		<?php 
+
+	//$wp_list_table = new Cwd_Extend_WP_Admin_Table_Maps('map');
+
+	?>
+
+
+	<div id="cwd-import-export" class="cwd-import-export-section cwd-admin-block" >
+		<h1>Import Maps</h1>
+		</br>
+		<form id="cwd-import-form" method="post" enctype="multipart/form-data">
+			<input type="file" name="file" id="file">
+			<input type="submit" name="upload_maps_csv" class="button button-primary" value="Upload File" />
+			<!--<button id="cwd-import-button" type="submit" class="button button-primary" >Import Markers</button>-->
+		</form>
+		</br>
+		<h1>Export Maps</h1>
+		</br>
+		<form id="cwd-export-form" method="post">
+			<!--<button id="cwd-export-button" type="button" class="button button-primary" style="margin-right:10px;">Export Markers</button>-->
+
+			<input type="submit" name="cwd_download_maps_csv" class="button button-primary" value="Download File" />	
+		</form>
+	</div>
+
+
+	<form id="cwd-map-selection-form" method="get" class="cwd-admin-block">
+		<h1>Select Map</h1>
+		</br>
+		<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" /> 
+			<?php 
+				$wp_list_table = new Cwd_Extend_WP_Admin_Table_Maps('map');
+				$wp_list_table->prepare_items();
+				$wp_list_table->search_box('Search', 'search');
+				$wp_list_table->display(); 
+			?>					
+	</form>
+
+
+	<?php
+
+		//$map_options = Cwd_Dynamic_Maps_Map_Table::get_table_data();
+		
+	?>
+
+	<div id="php-table-data"></div>
+
+	<form id="map-settings-form" class="cwd-admin-block" method="post">
+
+		<table id="table-map-settings-form" class="form-table" >
 			<thead>
-				<th><h1>Map Settings</h1></th>
+				<th id="title"><h1>Create NEW Map Settings</h1></th>				
 			</thead>
 			<tbody>
+				
+				<tr id="map_id">
+					<th>Map ID:</th>
+					<td>
+						<span><?php //echo $res->id; ?></span> 	
+						<input type="hidden" class="" name="id" value="<?php //echo $res->id; ?>"/>		
+
+					</td>
+				</tr>
 				<tr>
 					<th>Name:</th>
-					<td>
-						<input type="text" class="regular-text" name="map-name" value=""/>	
+					<td id="map_name">
+						<input type="text" class="regular-text" name="mapName" value="<?php //echo str_replace('_', ' ',esc_attr($res->mapName)); ?>"/>	
 					</td>
 				</tr>
 				<tr>
 					<th>Center Latitude:</th>
-					<td>
-						<input type="text" class="regular-text" name="center-latitude" value=""/>	
+					<td id="center_lat">
+						<input type="text" class="regular-text" name="centerLat" value="<?php //echo $res->centerLat; ?>"/>	
 					</td>
 				</tr>
 				<tr>
 					<th>Center Longitude:</th>
-					<td>
-						<input type="text" class="regular-text" name="center-longitude" value=""/>	
+					<td id="center_lng">
+						<input type="text" class="regular-text" name="centerLng" value="<?php //echo $res->centerLng; ?>"/>	
 					</td>
 				</tr>
 				<tr>
 					<th>Zoom:</th>
-					<td>
-						<input type="text" class="regular-text" name="zoom" value=""/>	
+					<td id="zoom">
+						<input type="text" class="regular-text" name="zoom" value="<?php //echo $res->zoom; ?>"/>	
 					</td>
 				</tr>
 				<tr>
-					<th>Bounds:</th>
-					<td>
-						<input type="text" class="regular-text" name="map-bounds" value=""/>	
+					<th>Minimum Zoom:</th>
+					<td id="min_zoom">
+						<input type="text" class="regular-text" name="minZoom" value="<?php //echo $res->minZoom; ?>"/>	
 					</td>
 				</tr>
 				<tr>
-					<th>Overlay:</th>
-					<td>
-						<input type="text" class="regular-text" name="overlay" value=""/>	
+					<th>Maximum Zoom:</th>
+					<td id="max_zoom">
+						<input type="text" class="regular-text" name="maxZoom" value="<?php //echo $res->maxZoom; ?>"/>	
 					</td>
 				</tr>
 				<tr>
-					<th>Overlay Bounds:</th>
-					<td>
-						<input type="text" class="regular-text" name="overlay-bounds" value=""/>	
-					</td>
-				</tr>
+					<th>Map Type:</th>
+					<td id="map_type_id">
+						<!--<input type="text" class="regular-text" name="mapTypeId" value="<?php //echo $map_options[0]->mapTypeId; ?>"/> -->
 
+						<?php //$mapTypeId = $res->mapTypeId;?>
+						<div>
+							<input type="radio" class="" name="mapTypeId" value="roadmap" <?php //if ($mapTypeId == 'roadmap') {echo 'checked';} ?> />
+							<label>Roadmap</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="mapTypeId" value="satellite" <?php //if ($mapTypeId == 'satellite') {echo 'checked';} ?> />
+							<label>Satellite</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="mapTypeId" value="hybrid" <?php //if ($mapTypeId == 'hybrid') {echo 'checked';} ?> />
+							<label>Hybrid</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="mapTypeId" value="terrain" <?php //if ($mapTypeId == 'terrain') {echo 'checked';} ?> />
+							<label>Terrain</label>
+						</div>
 
+					</td>
+				</tr>
+				<tr>
+					<th>45&#176; Imagery (Tilt):</th>
+					<td id="tilt">
+						<!--<input type="text" class="regular-text" name="tilt" value="<?php //echo $map_options[0]->tilt; ?>"/>	-->
+
+						<?php //$tilt = $res->tilt;?>
+						<div>
+							<input type="radio" class="" name="tilt" value=45 <?php //if ($tilt == 45) {echo 'checked';} ?> />
+							<label>Allow</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="tilt" value=0 <?php //if ($tilt == 0) {echo 'checked';} ?> />
+							<label>Don't Allow</label>
+						</div>
+
+					</td>
+				</tr>
+				<tr>
+					<th>Initial Orientation (Heading):</th>
+					<td id="heading">
+						<!--<input type="text" class="regular-text" name="heading" value="<?php //echo $map_options[0]->heading; ?>"/>	-->
+
+						<?php //$heading = $res->heading;?>
+						<div>
+							<input type="radio" class="" name="heading" value=0 <?php //if ($heading == 0) {echo 'checked';} ?> />
+							<label>North</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="heading" value=90 <?php //if ($heading == 90) {echo 'checked';} ?> />
+							<label>East</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="heading" value=180 <?php //if ($heading == 180) {echo 'checked';} ?> />
+							<label>South</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="heading" value=-90 <?php //if ($heading == -90) {echo 'checked';} ?> />
+							<label>West</label>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>Bound (North):</th>
+					<td id="north_bound">
+						<input type="text" class="regular-text" name="northBound" value="<?php //echo $res->northBound; ?>"/>	
+					</td>
+				</tr>
+				<tr>
+					<th>Bound (East):</th>
+					<td id="east_bound">
+						<input type="text" class="regular-text" name="eastBound" value="<?php //echo $res->eastBound; ?>"/>	
+					</td>
+				</tr>
+				<tr>
+					<th>Bound (South):</th>
+					<td id="south_bound">
+						<input type="text" class="regular-text" name="southBound" value="<?php //echo $res->southBound; ?>"/>	
+					</td>
+				</tr>
+				<tr>
+					<th>Bound (West):</th>
+					<td id="west_bound">
+						<input type="text" class="regular-text" name="westBound" value="<?php //echo $res->westBound; ?>"/>	
+					</td>
+				</tr>
+				<tr>
+					<th>Polyline (Outline):</th>
+					<td id="polyline">
+						<input type="text" class="regular-text" name="polyline" value="<?php //echo str_replace('\\', '',esc_attr($res->polyline)); ?>"/>	
+					</td>
+				</tr>
 			</tbody>
 			<tfoot></tfoot> 
 		</table>
 
-		<table id="table-col-name-form" class="form-table">
-			<thead>
-				<th><h1>Data Columns for Map Markers</h1></th>
-			</thead>
-			<tbody id="cwd-tbody-col-name-form">
-				<?php 
-					$col_options = Cwd_Dynamic_Maps_Marker_Table::get_table_cols_clean_2();
+		<!--<input type="submit" name="update_map" class="button button-primary" value="Save" />-->
+		<div class="cwd-button-wrap"> 
+			<button id="cwd-map-form-button" type="button" class="button button-primary cwd-right">Save Map</button>
+		</div>
 
-					foreach ($col_options as $key => $val) {
-						echo '<tr>
-								<td>
-									<input type="text" class="regular-text" name="cwd_form_data_curr_cols_'.esc_attr($val).'" value="'. str_replace('_', ' ', esc_attr($val)).'" />
-								</td>
-								<td>
-									<input type="button" class="cwd_options_remove_table_col_button button button-secondary" value="Delete" style="float:left;"/> 
-								</td>
-							</tr>';
-					}
-				?>
-	        </tbody>
-	        <tfoot>
-				 <tr>
-				 	<td>
-			        	<input id="cwd_options_add_input_button" type="button" class="button button-secondary" value="+" style="float:right;"/> 
-			    		<input id="cwd_options_remove_input_button" type="button" class="button button-secondary" value="-" style="float:right;"/> 
-			    	<td>
-			    </tr>
-		    </tfoot>
-
-		</table>
-
-		<input type="submit" name="update_table_cols" class="button button-primary" value="Save" />
-		
 	</form>
 
+	<!--<div id="map-wrap"></div>-->
 
-	<div id="map-wrap"></div>
+
+
 <?php
 
 //Prepare Table of elements
