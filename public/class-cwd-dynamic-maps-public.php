@@ -96,6 +96,7 @@ class Cwd_Dynamic_Maps_Public {
 		 * class.
 		 */
 
+		/*
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/cwd-dynamic-maps-public.js', array( 'jquery' ), $this->version, false );
 
 		wp_enqueue_script( $this->plugin_name.'-marker-cluster', plugin_dir_url( __FILE__ ) . 'js/markerclusterer.js', array(), $this->version, true );
@@ -103,14 +104,16 @@ class Cwd_Dynamic_Maps_Public {
 		// Pass PHP to public JS
 			// cwd_php_vars
 			$markers = new Cwd_Dynamic_Maps_Marker_Table(1);
-			wp_localize_script( $this->plugin_name/*.'-public-js'*/, 'cwd_php_vars', stripslashes(wp_json_encode($markers->get_table_data_by_cols($markers->get_table_cols_clean_3() ))) );
+			wp_localize_script( $this->plugin_name, 'cwd_php_vars', stripslashes(wp_json_encode($markers->get_table_data_by_cols($markers->get_table_cols_clean_3() ))) );
 
 			// map_options
 			$maps = new Cwd_Dynamic_Maps_Map_Table();
 			wp_localize_script($this->plugin_name, 'cwd_map_options', stripslashes(wp_json_encode($maps->get_table_data())));
  
 			// Api Key
-			wp_localize_script( $this->plugin_name /*.'-public-js'*/, 'cwd_api_key', get_option('cwd_dynamic_maps_option_api_key') );
+			wp_localize_script( $this->plugin_name, 'cwd_api_key', get_option('cwd_dynamic_maps_option_api_key') );
+			*/
+			
 
 	}
 
@@ -124,11 +127,67 @@ class Cwd_Dynamic_Maps_Public {
 
 	public function cwd_shortcode_callback($atts) {
 		$a = shortcode_atts( array(
-			'map' => 'the map',
-			'markers' => 'some markers'
+			'map' => '',
+			'markers' => ''
 			), $atts);
 
-		return "<div id='cwd-frontend-box'> <div style='width:49%; float:left;' id='cwd-map-wrap-frontend'></div><div style='width:49%; float:right;' class='cwd-table-wrap'></div> </div>" . ob_get_clean() ;
+			//can we move this to public enqueue??? need to localize $a here, and need to only have 1 enqueded public.js
+
+			//wp_enqueue_script( 'cwdmaps', plugin_dir_url( __FILE__ ) . 'js/cwd-dynamic-maps-public.js' );
+
+			wp_enqueue_script( 'cwdmaps', plugin_dir_url( __FILE__ ) . 'js/cwd-dynamic-maps-public.js', array( 'jquery' ), $this->version, false );
+			wp_localize_script('cwdmaps', 'cwd_map_shortcode_id', $a);
+
+
+
+			wp_enqueue_script( 'cwdmaps'.'-marker-cluster', plugin_dir_url( __FILE__ ) . 'js/markerclusterer.js', array(), $this->version, true );
+
+		// Pass PHP to public JS
+			// cwd_php_vars
+			
+			//check if markers exist 
+			$markers = new Cwd_Dynamic_Maps_Marker_Table($a['markers']);
+
+			$marker_cols = ($markers->get_table_name() == null)? wp_json_encode(array()) : stripslashes(wp_json_encode($markers->get_table_data_by_cols($markers->get_table_cols_clean_3() )));
+			wp_localize_script( 'cwdmaps', 'cwd_php_vars',  $marker_cols);
+
+			$marker_col_types =  ($markers->get_data_types() == null) ? wp_json_encode(array()) : stripslashes(wp_json_encode($markers->get_data_types()));
+
+			// map_options
+			$maps = new Cwd_Dynamic_Maps_Map_Table();
+			$maps_data = stripslashes(wp_json_encode($maps->get_table_data()));
+			wp_localize_script('cwdmaps', 'cwd_map_options', $maps_data);
+ 
+			// Plugin Url
+			wp_localize_script( 'cwdmaps', 'cwd_plugin_url', plugins_url() );
+
+			// BaseURL
+			wp_localize_script( 'cwdmaps', 'cwd_base_url', get_site_url() );
+
+			// Api Key
+			wp_localize_script( 'cwdmaps', 'cwd_api_key', get_option('cwd_dynamic_maps_option_api_key') );
+
+			$uid = wp_generate_password( 4, false );
+
+			wp_localize_script( 'cwdmaps', 'cwd_uid', $uid);
+
+
+			static $static;
+			$static[] = array('uid' => $uid, 'atts' => $a, 'markers_data' => $marker_cols, 'marker_col_types' => $marker_col_types, 'maps_data' => $maps_data, );
+			wp_localize_script( 'cwdmaps', 'cwd_static', $static);
+
+
+			$display = get_option('cwd_dynamic_maps_display_infowindow');
+			$display = ( empty($display) ? null : array_map('stripslashes', $display) );
+
+			$cluster_display = get_option('cwd_dynamic_maps_display_cluster');
+			$cluster_display = ( empty($cluster_display) ? null : array_map('stripslashes', $cluster_display) );
+
+			wp_localize_script( 'cwdmaps', 'cwd_infowindow_display', $display );
+			wp_localize_script( 'cwdmaps', 'cwd_cluster_display', $cluster_display );
+	
+
+		return "<div id='".$uid."'class='cwd-frontend-box'><div style='width:49%; float:left;' class='cwd-map-wrap-frontend'></div><div style='width:49%; float:right;' class='cwd-table-wrap'></div> </div>";
 	}
 
 }

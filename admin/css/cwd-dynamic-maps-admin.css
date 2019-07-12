@@ -3,6 +3,30 @@
  * included in this file.
  */
 
+ .cwd-invisible {
+ 	visibility: hidden;
+ }
+
+ .cwd_options_remove_table_col_button {
+ 	height:25px!important;
+ 	line-height:unset!important;
+ 	margin-top:1px!important;
+ }
+
+ #cwd-group-delete-wrap {
+ 	margin-top: -32px;
+	margin-right: 93px;
+	margin-bottom: 32px;
+ }
+
+ .set_custom_images {
+ 	width:30px;
+ }
+
+ .remove_custom_images {
+ 	width:30px;
+ }
+
  #cwd-map-selection-form table {
  	overflow-x:scroll;
  	display:block;
@@ -58,7 +82,6 @@
 }
 
 #col-name-plus-minus {
-	visibility: hidden;
 }
 
 .new-marker-form {
@@ -108,14 +131,20 @@ a.cwd-link-map {
 	resize:both;
 }
 
-#cwd-cols-form-button {
-	visibility: hidden;
-}
-
 p.search-box {
 	position: static!important;
 }
 
-td.no-selection-td {
-	width:100%;
-}
+ tr#form_group_number_row{
+ 	display:none;
+ }
+ tr#form_group_name_row{
+ }
+
+ tr.cwd_form_group_marker_cols_row td select{
+ 	line-height: 1.4em;
+ 	font-size: 14px;
+ 	height: auto;
+ 	margin-top: 0px;
+ 	margin-bottom: 3px;
+ }

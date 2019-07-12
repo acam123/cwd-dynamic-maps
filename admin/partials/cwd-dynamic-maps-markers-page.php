@@ -15,31 +15,108 @@
 
 <div class="wrap"> 
 	<h1>Edit Markers</h1>
+	<div id="cwd_file_wrap" ></div>
+	<?php 
+
+		if (!empty(session_id())) {
+			echo session_id();
+			//unset($_SESSION['cwd-dynamic-maps-map-selection']);
+			//unset($_SESSION['cwd-dynamic-maps-group-selection']);
+			echo '<p>Map: '.((isset($_SESSION['cwd-dynamic-maps-map-selection'])) ? $_SESSION['cwd-dynamic-maps-map-selection']:'none').'</p>';
+			echo '<p>Group: '.((isset($_SESSION['cwd-dynamic-maps-group-selection'])) ? $_SESSION['cwd-dynamic-maps-group-selection']:'none').'</p>';
+		}
+	?>
+
+	<form id="cwd-map-selection-form" method="get" class="cwd-admin-block">
+		<h1>Select Map</h1>
+		</br>
+		<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" /> 
+			<?php 
+				$wp_list_table = new Cwd_Extend_WP_Admin_Table_Maps('map');
+				$wp_list_table->prepare_items();
+				$wp_list_table->search_box('Search', 'search');
+				$wp_list_table->display(); 
+			?>					
+	</form>
+
+	<form id="cwd-group-selection-form" method="get" class="cwd-admin-block">
+		<h1>Select Marker Group</h1>
+		</br>
+		<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" /> 
+			<?php 
+				$wp_list_table = new Cwd_Extend_WP_Admin_Table_Maps('group');
+				$wp_list_table->prepare_items();
+				$wp_list_table->search_box('Search', 'search');
+				$wp_list_table->display(); 
+			?>					
+	</form>
+
+	<?php 
+			//$grp_num = (isset($_SESSION['cwd-dynamic-maps-group-selection']) ? $_SESSION['cwd-dynamic-maps-group-selection'] : '');
+			
+			$grp_num = '';
+			$grp_full_name = '';
+
+			if (isset($_SESSION['cwd-dynamic-maps-group-selection'])) {
+
+				$grp_num = $_SESSION['cwd-dynamic-maps-group-selection'];
+
+				$markers = new Cwd_Dynamic_Maps_Marker_Table($grp_num);
+				$grp_full_name = $markers->get_table_name();
+
+				$table_headers = $markers->get_table_header_clean();
+				$num_cols = count($table_headers);
+				$table_data = $markers->get_table_data();
+			}
+	?>
 
 	<div id="cwd-import-export" class="cwd-import-export-section cwd-admin-block">
-		<h1>Import Markers</h1>
+		<h1>Import Markers - Group: <?php echo $grp_num ?></h1>
 		</br>
-		<form id="cwd-import-form" method="post" enctype="multipart/form-data">
+		
+		
+		<!-- AJAX Interupts Submit and make new FormData() post to cwd_ajax_url -->
+		<form id="cwd-import-markers-form" method="post" enctype="multipart/form-data">
 			<input type="file" name="file" id="file">
+			<input type="hidden" name="marker_export_group" value=<?php echo $grp_num; ?> />
+			<input type="hidden" name="marker_export_full_name" value=<?php echo $grp_full_name; ?> />
 			<input type="submit" name="upload_csv" class="button button-primary" value="Upload File" />
-			<!--<button id="cwd-import-button" type="submit" class="button button-primary" >Import Markers</button>-->
 		</form>
+		
+	
+
 		</br>
-		<h1>Export Markers</h1>
+
+
+	<!--
+		<h1>Export Markers - Group: <?php //echo $grp_num?></h1>
 		</br>
 		<form id="cwd-export-form" method="post">
-			<!--<button id="cwd-export-button" type="button" class="button button-primary" style="margin-right:10px;">Export Markers</button>-->
+			<input type="submit" name="download_csv" class="button button-primary" value="Download File" />
+		</form>
+	-->
 
-			<input type="submit" name="download_csv" class="button button-primary" value="Download File" />	
+		<h1>Export Markers - Group: <?php echo $grp_num ?></h1>
+		</br>
+		<form id="cwd-export-markers-form" method="post">
+			<input type="hidden" name="marker_export_group" value=<?php echo $grp_num; ?> />
+			<input type="hidden" name="marker_export_full_name" value=<?php echo $grp_full_name; ?> />
+			<!--<input type="button" data-cwd-group= <?php //echo $grp_num; ?> name="download_markers_csv" class="button button-primary" value="Download File" />-->
+			<button id="download_markers_csv" type="button" class="button-primary button">Download File</button>
 		</form>
 	</div>
 
 	<div id='cwd-markers-div' >
 		<?php 
-			$markers = new Cwd_Dynamic_Maps_Marker_Table(1);
-			$table_headers = $markers->get_table_header_clean();
-			$num_cols = count($table_headers);
-			$table_data = $markers->get_table_data();
+			/*
+			if (isset($_SESSION['cwd-dynamic-maps-group-selection'])) {
+				$markers = new Cwd_Dynamic_Maps_Marker_Table($_SESSION['cwd-dynamic-maps-group-selection']);
+			
+				$table_headers = $markers->get_table_header_clean();
+				$num_cols = count($table_headers);
+				$table_data = $markers->get_table_data();
+			}
+			*/
 		?>
 		<div id='cwd-add-edit-marker-description'>
 			<p>
@@ -86,7 +163,11 @@
 					</tr>
 				</table>
 					<?php
+
+					if (isset($_SESSION['cwd-dynamic-maps-group-selection'])) {
 						$data_types = $markers->get_data_types();
+
+						wp_enqueue_media(); // load wp.media to include images (maybe move to admin scripts enqueue)???
 
 						$string = '<div class="cwd-hidden">'; 
 						$string .='<input name="id" type="hidden" value=""></input>';
@@ -98,7 +179,10 @@
 									if ($data_type->CHARACTER_MAXIMUM_LENGTH > 255) {
 										$type = 'textarea';
 									}
-									break;
+									else if ($data_type->COLUMN_COMMENT == 'img') {
+										$type = 'img';
+									}
+									//break;
 								}
 							}
 
@@ -106,16 +190,19 @@
 							$string .= '<h4 class="cwd-form-titles">';
 							$string .= ucwords( str_replace('_', ' ', $name) );
 							$string .= '</h4>';
-							$string .= '<'.$type.' class="marker-form-input-field" type="text" name="'.$name.'" value=""></'.$type.'>';
+							$string .= ( ($type==='img') ? '<img id="cwd-img-upload" src="' .plugins_url() . "/cwd-dynamic-maps/public/img/camera-icon.svg".'" height="28px" /> <input type="hidden" value="" class="marker-form-input-field process_custom_images" id="process_custom_images" name="'.$name.'" max="" min="1" step="1" />
+    	<button type="button" class="set_custom_images button">+</button><button type="button" class="remove_custom_images button">-</button>' : '<'.$type.' class="marker-form-input-field" type="text" name="'.$name.'" value=""></'.$type.'>' );
 							$string .= '</span>';
 						}
 						
 						$string .= '</div>'; 
 						echo $string;
+					}
 					?>
 					
 		        	<div class="cwd-button-wrap">
 		        		<button id="cwd-form-button" type="button" class="button button-primary cwd-right">Save Marker</button>
+		        		<div id="cwd-delete-marker-wrap"></div>
 		        	</div>
 			</form>
 		</div>
@@ -124,7 +211,3 @@
 		<br>
 		
 	</div>
-
-	
-
-	

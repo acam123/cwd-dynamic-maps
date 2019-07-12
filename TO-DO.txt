@@ -2,11 +2,31 @@
 	TO DO
 ***************
 
+- Fix orderby & order on tables (markers page) to be confined to specific table
+- Move code to all admin page check function for javascript table rewrites to expand to effect all pages
+- Public maps make infowindow and declustered confined to specific map (when infowindow open and touch other map, marker jumps maps)
+- Add data columns and display rows for full template
+- Make database changes from Rebecca's table
+- Make import export depend on selected map/group/marker
+- Make public table link click skip cluaterwindow and go to individual infowindow 
+- Clean
+- Reload to Public Site (check when no maps, markers, etc.)
+- Admin maps backend load proper marker display 
+
+
+- Instead of @media for public shortcode vertical v horizontal shift should be javascript incase shortcode in small div (like in post)
+- Make markers import export respond to selected marker group
+- Localize shortcodes with distinct ids so can have multiple maps per page
+- Variable (maybe editable???) Single Marker displays 
+- Check map input usable
+
 Markers Page 
 - Put map on Add Markers page
 
 Maps Page 
+- Make interactive map for this page to select center, polyline, boundary, etc. 
 - All settings to apply to different maps 
+
 
 Misc
 - Validate database inputs

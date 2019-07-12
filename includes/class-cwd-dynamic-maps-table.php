@@ -38,9 +38,9 @@ class Cwd_Dynamic_Maps_Map_Table {
 		global $wpdb;
 		$table_name = $this->get_table_name();
 
-		$cols = implode(',', $cols);
+		$cols = '`'.implode('`,`', $cols).'`';
 		$table = (
-			$wpdb->get_results( "SELECT $cols from $table_name Order by id desc")
+			$wpdb->get_results( "SELECT $cols from `$table_name` Order by id desc")
 		);
 
 		return $table;
@@ -51,11 +51,10 @@ class Cwd_Dynamic_Maps_Map_Table {
 		return $this->get_table_data_by_cols($cols);
 	}//End get_table_data()	
 
-	// *** What columns do i need??? ***
 	public function create_table() {
 		global $wpdb;
 		$table_name = $this->get_table_name();
-		if ( count($wpdb->get_var("Show tables like'".$table_name."'")) == 0) {
+		if ( count($wpdb->get_results("Show tables like'".$table_name."'")) === 0) {
 			$sql = "CREATE TABLE $table_name (
 				id mediumint(9) NOT NULL AUTO_INCREMENT,
 				time datetime DEFAULT '1000-01-01 00:00:00',
@@ -82,8 +81,10 @@ class Cwd_Dynamic_Maps_Map_Table {
 	}//End create_table()
 
 	public function delete_table_row($id) {
+		global $wpdb;
 		$table_name = $this->get_table_name();
-		$wpdb->delete( $table_name, array('id' => $id) );
+		$res = $wpdb->delete( $table_name, array('id' => $id) );
+		return $res;
 	}//End delete_table_row()
 
 	public function update_map($args) {
@@ -98,7 +99,7 @@ class Cwd_Dynamic_Maps_Map_Table {
 		$data_row['time'] = current_time('mysql'); 
 
 		$id = $args['id']; 
-		if ( count($wpdb->get_var("SELECT * from $table_name  WHERE id = '$id'")) == 1 ) {
+		if ( count($wpdb->get_results("SELECT * from `$table_name`  WHERE id = '$id'")) === 1 ) {
 			$result = $wpdb->update( 
 				$table_name, 
 				$data_row,
@@ -122,7 +123,7 @@ class Cwd_Dynamic_Maps_Map_Table {
 		if (isset($_POST['cwd_download_maps_csv'])) {
 			global $wpdb;
 			$table_name = $this->get_table_name();
-	    	$sql = "SELECT * FROM $table_name";
+	    	$sql = "SELECT * FROM `$table_name`";
 	    	$rows = $wpdb->get_results($sql, 'ARRAY_A');
 
 	    	if ($rows) {
@@ -155,7 +156,6 @@ class Cwd_Dynamic_Maps_Map_Table {
 
 		            // Add row to file
 		            fputcsv($output_handle, $leadArray, $delimiter = ',', $enclosure = '\'',  $escape_char="\\");
-		            //fputcsv($output_handle, $leadArray);
 		        }
 		        // Close output file stream
 		        fclose($output_handle);
@@ -163,54 +163,35 @@ class Cwd_Dynamic_Maps_Map_Table {
 		        exit();
 			}
 		}
-	}//End export_markers()
+	}//End export_maps()
 
 	//Registered on admin_init  
 	public function import_maps() {
 		if(isset($_POST['upload_maps_csv'])) {
             $filename = $_FILES['file']['tmp_name'];
 
-            if($_FILES["file"]["size"] > 0)
-			 {
+            if($_FILES["file"]["size"] > 0) {
 
 			 	/* !!!IMPORTANT: Check the file cols against the database if they exist!!! */
 
 			 	//$table_cols = json_decode(get_option('cwd_dynamic_maps_option_marker_attributes'), true);
 			 	//$table_cols = array_values($table_cols);
 			 	
-
 				$x = 0;
 				$file_cols = array();
 
 			  	$file = fopen($filename, "r");
-		        while ( ($getData = fgetcsv($file, 10000, $delimiter = ',', $enclosure = "'",  $escape_char="\\")) !== FALSE )
-		         {
-		         	//Get args dynamocally from table if exists, settings, or file 
-		         	/*$args['id'] = $getData[0];
-		         	$args['time'] = $getData[1];
-		         	$args['first_name'] = $getData[2];
-		         	$args['middle_names'] = $getData[3];
-		         	$args['last_name'] = $getData[4];
-		         	$args['born'] = $getData[5];
-		         	$args['died'] = $getData[6];
-		         	$args['latitude'] = $getData[7];
-		         	$args['longitude'] = $getData[8];
-		         	$args['description'] = $getData[9];
-		         	$args['action'] = '';
-		         	$args['param'] = '';*/
-
-
-		         	//echo json_encode($args);
-
-		         	//Better was to check for column headers
+		        while ( ($getData = fgetcsv($file, 10000, $delimiter = ',', $enclosure = "'",  $escape_char="\\")) !== FALSE ) {
+		         	
 		         	if ($x>0) { 
+		         		// Update map table row by table row
 	 					for ($i=0; $i < sizeof($file_cols); $i++) {
 		         			$args[$file_cols[$i]] = $getData[$i];
 		         		}
 		         		$response = $this->update_map($args);
-
 	 				}
 	 				else {
+	 					// Get Col Names 
 	 					$more = true;
 	 					$y=0;
 	 					while($more) {
@@ -222,32 +203,12 @@ class Cwd_Dynamic_Maps_Map_Table {
 	 							$more = false;
 	 						}
 	 					}
-
 	 				}
 	 				$x++;
-
-		           /*
-		           $sql = "INSERT into $table_name (id,time,first_name,middle_names,last_name,born,died,latitude,longitude,description) 
-	                   values ('".$getData[0]."','".$getData[1]."','".$getData[2]."','".$getData[3]."','".$getData[4]."','".$getData[5]."','".$getData[6]."','".$getData[7]."','".$getData[8]."','".$getData[9]."')";
-	                   $result = mysqli_query($con, $sql);
-					if(!isset($result))
-					{
-						echo "<script type=\"text/javascript\">
-								alert(\"Invalid File:Please Upload CSV File.\");
-								window.location = \"index.php\"
-							  </script>";		
-					}
-					else {
-						  echo "<script type=\"text/javascript\">
-							alert(\"CSV File has been successfully Imported.\");
-							window.location = \"index.php\"
-						</script>";
-					}
-					*/
-		         }
-				
-		         fclose($file);	
-			 }
+		        }
+		        fclose($file);	
+		        exit();
+			}
         }
 	}//End import_maps()
 
@@ -255,319 +216,7 @@ class Cwd_Dynamic_Maps_Map_Table {
 
 
 
-/*
-// THIS IS THE STATIC VERSION
-class Cwd_Dynamic_Maps_Marker_Table {
-	
-	public static function get_table_name($args) {
-		global $wpdb;
 
-		$table_name_main = 'cwd_dynamic_maps_marker_data';
-		return $wpdb->prefix.$table_name_main;
-	}//End get_table_name()
-
-	public static function get_table_header() {
-		global $wpdb;
-
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-		$cols = $wpdb->get_col("DESC {$table_name}", 0);
-		return $cols;
-	}//End get_table_header()
-
-	public static function get_table_header_clean() {
-		$cols = Cwd_Dynamic_Maps_Marker_Table::get_table_header();
-		$cols = array_values(array_diff($cols, ['id', 'time']));
-		return $cols;
-	}//End get_table_header_clean()
-
-	public static function get_table_cols_clean_2() {
-		$cols = Cwd_Dynamic_Maps_Marker_Table::get_table_header();
-		$cols = array_diff($cols, ['id', 'time', 'latitude', 'longitude']);
-		return $cols;
-	}//End get_table_cols_clean_2()	
-
-	public static function get_table_cols_clean_3() {
-		$cols = Cwd_Dynamic_Maps_Marker_Table::get_table_header();
-		$cols = array_diff($cols, ['time']);
-		return $cols;
-	}//End get_table_cols_clean_3()
-
-	public static function get_table_data_by_cols($cols) {
-		global $wpdb;
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-		$tmp;
-		$table;
-
-		$cols = implode(',', $cols);
-		$table = (
-			$wpdb->get_results( "SELECT $cols from $table_name Order by id desc")
-		);
-
-		return $table;
-	}//End get_table_data_by_cols()
-
-	public static function get_data_types() {
-		global $wpdb;
-
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-		$sql = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name'";
-		$res = $wpdb->get_results($sql);
-		
-		return $res;
-	}//End get_information_schema()
-
-	public static function get_table_data() {
-		$cols = array ('*');
-		return Cwd_Dynamic_Maps_Marker_Table::get_table_data_by_cols($cols);
-	}//End get_table_data()
-
-	public static function create_table() {
-		global $wpdb;
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-		if ( count($wpdb->get_var("Show tables like'".$table_name."'")) == 0) {
-			$sql = "CREATE TABLE $table_name (
-				id mediumint(9) NOT NULL AUTO_INCREMENT,
-				time datetime DEFAULT '1000-01-01 00:00:00',
-				latitude float(10,6),
-				longitude float(10,6),
-				UNIQUE KEY id (id)
-			)";
-
-			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-		dbDelta( $sql );
-		}
-	}//End create_table()
-
-	// NOTE: functions defined elsewhere in the plugin cannot be called on uninstall 
-	// therefore a modified version of delete_table() has been included in uninstall.php
-	//
-	public static function delete_table() {
-		global $wpdb;
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-		$wpdb->query("DROP table IF EXISTS $table_name");
-
-	}//End delete_table()
-
-	public static function delete_table_row($id) {
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-		$wpdb->delete( $table_name, array('id' => $id) );
-	}//End delete_table_row() 
-
-	public static function import_markers() {
-
-		 if(isset($_POST['upload_csv'])) {
-            $filename = $_FILES['file']['tmp_name'];
-
-            if($_FILES["file"]["size"] > 0)
-			 {
-
-
-			 	//$table_cols = json_decode(get_option('cwd_dynamic_maps_option_marker_attributes'), true);
-			 	//$table_cols = array_values($table_cols);
-			 	
-
-				$x = 0;
-				$file_cols = array();
-
-			  	$file = fopen($filename, "r");
-		        while (($getData = fgetcsv($file, 10000, ",")) !== FALSE)
-		         {
-		         	//Get args dynamocally from table if exists, settings, or file 
-
-		         	//echo json_encode($args);
-
-		         	//Better was to check for column headers
-		         	if ($x>0) { 
-	 					for ($i=0; $i < sizeof($file_cols); $i++) {
-		         			$args[$file_cols[$i]] = $getData[$i];
-		         		}
-		         		$response = Cwd_Dynamic_Maps_Marker_Table::update_marker($args);
-
-	 				}
-	 				else {
-	 					$more = true;
-	 					$y=0;
-	 					while($more) {
-	 						if(isset($getData[$y])) {
-	 							$file_cols[] = $getData[$y];
-	 							$y++;
-	 						}
-	 						else {
-	 							$more = false;
-	 						}
-	 					}
-
-	 				}
-	 				$x++;
-
-		         }
-				
-		         fclose($file);	
-			 }
- 
- 
-        }
-
-	}//End import_markers
-
-	//Registered on admin_init  
-	public static function export_markers() {
-		if (isset($_POST['download_csv'])) {
-			global $wpdb;
-			$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-	    	$sql = "SELECT * FROM $table_name";
-	    	$rows = $wpdb->get_results($sql, 'ARRAY_A');
-
-	    	if ($rows) {
-		        $output_filename = 'cwd_dynamic_maps_marker_data_' .date('m-d-Y'). '.csv';
-		        $output_handle = @fopen('php://output', 'w');
-
-		        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-		        header('Content-Description: File Transfer');
-		        header('Content-type: text/csv');
-		        header('Content-Disposition: attachment; filename=' . 
-		        $output_filename);
-		        header('Expires: 0');
-		        header('Pragma: public');
-
-		        $first = true;
-		       // Parse results to csv format
-		        foreach ($rows as $row) {
-
-		       // Add table headers
-		            if ($first) {
-		               $titles = array();
-		                foreach ($row as $key => $val) {
-		                    $titles[] = $key;
-		                }
-		                fputcsv($output_handle, $titles);
-		                $first = false;
-		            }
-		            $leadArray = (array) $row; // Cast the Object to an array
-		            // Add row to file
-		            fputcsv($output_handle, $leadArray);
-		        }
-		        // Close output file stream
-		        fclose($output_handle);
-		        //wp_die();
-		        exit();
-			}
-		}
-	}//End export_markers()
-
-	public static function update_marker($args) {
-		global $wpdb;
-
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-
-		unset($args['action']);
-		unset($args['param']);
-		$data_row = $args;
-		$data_row['time'] = current_time('mysql'); 
-
-		$id = $args['id']; 
-		if ($id == '') {
-			$result = $wpdb->insert( 
-				$table_name,
-				$data_row
-			);
-		}
-		else {
-			$result = $wpdb->update( 
-				$table_name, 
-				$data_row,
-				array(
-					'id' => $id,
-				) 
-			);
-
-		}
-		return $result;
-	}//End update_markers()
-
-
-	public static function add_table_cols($arr) {
-		global $wpdb;
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-
-		foreach ($arr as $col) {
-			$sql = "ALTER table $table_name ADD $col varchar(255) DEFAULT ''";
-			$wpdb->query($sql);
-		}
-	}
-
-	public static function rename_table_cols($arr) {
-		global $wpdb;
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-
-		foreach ($arr as $key => $val) {
-			if ($key != $val ) {
-				$sql = "ALTER table $table_name Change COLUMN $key $val varchar(255) DEFAULT ''"; 
-				$wpdb->query($sql);
-			}
-		}
-	}//End rename_table_cols()
-
-	public static function delete_table_cols($arr) {
-		global $wpdb;
-		$table_name = Cwd_Dynamic_Maps_Marker_Table::get_table_name();
-
-		foreach ($arr as $key => $val) {
-				$sql="ALTER Table $table_name DROP COLUMN $val";
-				$wpdb->query($sql);
-		}
-	}//End delete_table_cols()
-
-
-
-	public static function update_marker_cols($args) {
-	    	$add_arr = array();
-	    	$add_cols_match = false;
-	    	$del_arr = array();
-	    	$del_cols_match = false;
-	    	$rn_arr = array();
-	    	$rn_cols_match = false;
-	    
-	    	foreach( $args as $key => $value ) {
-	    		if(preg_match('/^cwd_form_data_add_cols_[0-9]+$/', $key)) {
-	    			$add_arr[$key] = str_replace(' ', '_', $value);
-	    			$add_cols_match = true;	
-	    		}
-
-	    		else if(preg_match('/^cwd_form_data_delete_cols_[a-zA-Z0-9_]+$/', $key)) {
-	    			$del_arr[$key] = str_replace(' ', '_', $value);
-	    			$del_cols_match = true;	
-	    		}
-
-	    		else if(preg_match('/^cwd_form_data_curr_cols_[a-zA-Z0-9_]+$/', $key)) {
-	    			$key = substr($key, 24); // remove 24 characters to get the name
-	    			$rn_arr[$key] = str_replace(' ', '_', $value);
-	    			$rn_cols_match = true;	
-	    		}
-
-	    		else {}
-	    		
-	    	}
-
-	    	//print_r(json_encode($map_settings));
-
-
-	    	if ($add_cols_match === true) { 
-	    		Cwd_Dynamic_Maps_Marker_Table::add_table_cols($add_arr);
-	    	}
-
-	    	if ($del_cols_match === true) { 
-	    		Cwd_Dynamic_Maps_Marker_Table::delete_table_cols($del_arr);
-	    	}
-
-	    	if ($rn_cols_match == true) {
-	    		Cwd_Dynamic_Maps_Marker_Table::rename_table_cols($rn_arr);
-	    	}
-		return $result;
-	}//End update_marker_cols()
-
-}//End class Cwd_Dynamic_Maps_Marker_Table STATIC VERSION
-*/
 
 class Cwd_Dynamic_Maps_Marker_Table {
 	/**
@@ -575,20 +224,54 @@ class Cwd_Dynamic_Maps_Marker_Table {
 	 *
 	 * @since    1.0.0
 	 * @access   private
-	 * @var      int    $marker_group;   Which marker group to use.
+	 * @var      int    $group_number;   Which marker group to use.
 	 */
-	private $marker_group;
+	private $group_number;
 
-	public function __construct($marker_group = 'none') {
-        $this->marker_group = $marker_group;
+	public function __construct($group_number = 'none') {
+        $this->group_number = $group_number;
     }
+
+	public function get_table_prefix() {
+		global $wpdb;
+		return $wpdb->prefix.'cwd_dynamic_maps_marker_data';
+	}//End get_table_prefix()
 
 	public function get_table_name() {
 		global $wpdb;
-		$table_name = $wpdb->prefix.'cwd_dynamic_maps_marker_data_'.$this->marker_group;
+		$table_name = $this->get_table_prefix().'_'.$this->group_number;
 
-		return ( (count($wpdb->get_var("Show tables like'".$table_name."_%'")) === 1) ? $wpdb->get_var("Show tables like'".$table_name."_%'"): null );
+		return ( (count($wpdb->get_results("Show tables like'".$table_name."\_%'")) === 1) ? $wpdb->get_var("Show tables like'".$table_name."\_%'"): null );
 	}//End get_table_name()
+
+	public function get_group_name() {
+		$table_name = $this->get_table_name();
+		$prefix = $this->get_table_prefix();
+		$matches;
+		preg_match('/^'.$prefix.'_([0-9]+)_([a-zA-Z0-9_]+)$/', $table_name, $matches);
+		return $matches[2];
+	}
+
+	public function rename_group($new_name) {
+		global $wpdb;
+		$prefix = $this->get_table_prefix();
+		$new_table_name = $prefix.'_'.$this->group_number.'_'.$new_name;
+		$old_table_name = $this->get_table_name();
+		$sql = "ALTER TABLE `$old_table_name` RENAME TO `$new_table_name`";
+
+		if ( empty($new_name) ) {
+			print_r('You cannot rename the group by leaving it empty');
+		}
+		else {
+			$res = $wpdb->query($sql);
+			if ($res) {
+				print_r('The group name was updated successfully');
+			}
+			else {
+				print_r('There was an error updating the group name');
+			}
+		}
+	}
 
 	public function get_table_header() {
 		global $wpdb;
@@ -605,6 +288,7 @@ class Cwd_Dynamic_Maps_Marker_Table {
 
 	public function get_table_cols_clean_2() {
 		$cols = $this->get_table_header();
+
 		$cols = array_diff($cols, ['id', 'time', 'latitude', 'longitude']);
 		return $cols;
 	}//End get_table_cols_clean_2()	
@@ -625,9 +309,10 @@ class Cwd_Dynamic_Maps_Marker_Table {
 		$tmp;
 		$table;
 
-		$cols = implode(',', $cols);
+		$cols = '`'.implode('`,`', $cols).'`';
+
 		$table = (
-			$wpdb->get_results( "SELECT $cols from $table_name Order by id desc")
+			$wpdb->get_results( "SELECT $cols from `$table_name` Order by id desc")
 		);
 
 		return $table;
@@ -637,7 +322,7 @@ class Cwd_Dynamic_Maps_Marker_Table {
 		global $wpdb;
 
 		$table_name = $this->get_table_name();
-		$sql = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name'";
+		$sql = "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, COLUMN_COMMENT FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$table_name'";
 
 		return $wpdb->get_results($sql);
 	}//End get_information_schema()
@@ -647,21 +332,46 @@ class Cwd_Dynamic_Maps_Marker_Table {
 		return $this->get_table_data_by_cols($cols);
 	}//End get_table_data()
 
-	public function create_table() {
+	public function create_table($group_name) {
 		global $wpdb;
-		$table_name = $this->get_table_name();
-		if ( count($wpdb->get_var("Show tables like'".$table_name."'")) === 0) {
-			$sql = "CREATE TABLE $table_name (
-				id mediumint(9) NOT NULL AUTO_INCREMENT,
-				time datetime DEFAULT '1000-01-01 00:00:00',
-				latitude float(10,6),
-				longitude float(10,6),
-				UNIQUE KEY id (id)
-			)";
+		$table_prefix = $this->get_table_prefix();
+		$new_group_num;
 
-			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-		dbDelta( $sql );
+		if ( count($wpdb->get_results("Show tables like'".$table_prefix."\_%'")) === 0) {
+			$new_group_num = 1;
 		}
+		else {
+			$tables = $wpdb->get_results("Show tables like'".$table_prefix."\_%'", ARRAY_N);
+			$curr_groups = array();
+
+			foreach ($tables as $table) {
+				$matches;
+				preg_match('/^'.$table_prefix.'_([0-9]+)_([a-zA-Z0-9_]+)$/', $table[0], $matches);
+				
+				$curr_groups[] = $matches[1];
+				//$name = $matches[2];
+			}
+
+			$cmp = range( 1, (max($curr_groups)+1) ); // Get comparison array from 1 - highest number of existing tables + 1
+			$new_group_num = min(array_diff($cmp, $curr_groups)); // Get the smallest of the non-existing values
+		}
+
+		$group_name = ( empty($group_name) ? 'Group_'.$new_group_num : $group_name ); 
+
+		$table_name = $table_prefix.'_'.$new_group_num.'_'.$group_name;
+		
+		$sql = "CREATE TABLE $table_name (
+			id mediumint(9) NOT NULL AUTO_INCREMENT,
+			time datetime DEFAULT '1000-01-01 00:00:00',
+			latitude float(10,6),
+			longitude float(10,6),
+			UNIQUE KEY id (id)
+		)";
+
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		$res = dbDelta( $sql );
+		//print_r($res);
+		return $new_group_num;
 	}//End create_table()
 
 	/* NOTE: functions defined elsewhere in the plugin cannot be called on uninstall 
@@ -670,15 +380,68 @@ class Cwd_Dynamic_Maps_Marker_Table {
 	public function delete_table() {
 		global $wpdb;
 		$table_name = $this->get_table_name();
-		$wpdb->query("DROP table IF EXISTS $table_name");
-
+		$res = false;
+		if ($table_name !== null) {
+			$res = $wpdb->query("DROP table IF EXISTS `$table_name`");
+		}
+		return $res;
 	}//End delete_table()
 
 	public function delete_table_row($id) {
+		global $wpdb;
 		$table_name = $this->get_table_name();
-		$wpdb->delete( $table_name, array('id' => $id) );
+		$res = $wpdb->delete( $table_name, array('id' => $id) );
+		return $res;
 	}//End delete_table_row() 
 
+	//Ajax version import markers data
+	
+	public function import_markers_data() {
+		$response = false;
+
+        if ( $_FILES["cwd_csv"]["size"] > 0 ) {
+        	$response = true;
+
+		 	$filename = $_FILES['cwd_csv']['tmp_name'];
+		 	// !!!IMPORTANT: Check the file cols against the database if they exist!!! 
+		 	
+			$x = 0;
+			$file_cols = array();
+
+		  	$file = fopen($filename, "r");
+	        while (($getData = fgetcsv($file, 10000, ",")) !== FALSE) {
+	         	
+	         	if ($x>0) { 
+ 					for ($i=0; $i < sizeof($file_cols); $i++) {
+	         			$args[$file_cols[$i]] = $getData[$i];
+	         		}
+	         		$this->update_marker($args);
+ 				}
+ 				else {
+ 					$more = true;
+ 					$y=0;
+ 					while($more) {
+ 						if(isset($getData[$y])) {
+ 							$file_cols[] = $getData[$y];
+ 							$y++;
+ 						}
+ 						else {
+ 							$more = false;
+ 						}
+ 					}
+ 				}
+ 				$x++;
+	        }
+	        fclose($file);			         
+		}
+		return $response;
+		exit();
+	}
+	//End import_markers_data()
+	
+
+
+	// registered on admin_init
 	public function import_markers() {
 
 		 if(isset($_POST['upload_csv'])) {
@@ -686,8 +449,8 @@ class Cwd_Dynamic_Maps_Marker_Table {
 
             if($_FILES["file"]["size"] > 0)
 			 {
-
-			 	// !!!IMPORTANT: Check the file cols against the database is they exist!!! 
+			 
+			 	// !!!IMPORTANT: Check the file cols against the database if they exist!!! 
 			 	
 				$x = 0;
 				$file_cols = array();
@@ -695,29 +458,16 @@ class Cwd_Dynamic_Maps_Marker_Table {
 			  	$file = fopen($filename, "r");
 		        while (($getData = fgetcsv($file, 10000, ",")) !== FALSE)
 		         {
-		         	//Get args dynamocally from table if exists, settings, or file 
-		         	/*$args['id'] = $getData[0];
-		         	$args['time'] = $getData[1];
-		         	$args['first_name'] = $getData[2];
-		         	$args['middle_names'] = $getData[3];
-		         	$args['last_name'] = $getData[4];
-		         	$args['born'] = $getData[5];
-		         	$args['died'] = $getData[6];
-		         	$args['latitude'] = $getData[7];
-		         	$args['longitude'] = $getData[8];
-		         	$args['description'] = $getData[9];
-		         	$args['action'] = '';
-		         	$args['param'] = '';*/
-
-
-		         	//echo json_encode($args);
-
-		         	//Better was to check for column headers
+		         	
 		         	if ($x>0) { 
 	 					for ($i=0; $i < sizeof($file_cols); $i++) {
 		         			$args[$file_cols[$i]] = $getData[$i];
 		         		}
-		         		$response = $this->update_marker($args);
+		         		
+		         		// !!! KEEP START !!!
+		         		 $response = $this->update_marker($args);
+		         		// !!! KEEP END !!!
+		         		$response = $args;
 	 				}
 	 				else {
 	 					$more = true;
@@ -735,18 +485,68 @@ class Cwd_Dynamic_Maps_Marker_Table {
 	 				$x++;
 		         }
 		         fclose($file);	
+
+		         
+		         exit();
+		         
+			 }
+			 else {
 			 }
         }
 	}//End import_markers
+	
 
-	//Registered on admin_init  
+	//Ajax version - live 
+	public function export_markers_data() {
+
+		global $wpdb;
+		$table_name = $this->get_table_name();
+    	$sql = "SELECT * FROM `$table_name`";
+    	$rows = $wpdb->get_results($sql, 'ARRAY_A');
+
+    	if ($rows) {
+	        $output_filename = 'cwd_dynamic_maps_marker_data_' .date('m-d-Y'). '.csv';
+	        $output_handle = @fopen('php://output', 'w');
+
+	       /* header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+	        header('Content-Description: File Transfer');
+	        header('Content-type: text/csv');
+	        header('Content-Disposition: attachment; filename=' . $output_filename);
+	        header('Expires: 0');
+	        header('Pragma: public');*/
+
+	        $first = true;
+	       // Parse results to csv format
+	        foreach ($rows as $row) {
+				// Add table headers
+	            if ($first) {
+	               $titles = array();
+	                foreach ($row as $key => $val) {
+	                    $titles[] = $key;
+	                }
+	                fputcsv($output_handle, $titles);
+	                $first = false;
+	            }
+	            $leadArray = (array) $row; // Cast the Object to an array
+	            // Add row to file
+	            fputcsv($output_handle, $leadArray);
+	        }
+
+	        fclose($output_handle);
+
+	        exit();
+		}
+
+	}
+
+	//Registered on admin_init version 
 	public function export_markers() {
 		if (isset($_POST['download_csv'])) {
 			global $wpdb;
 			$table_name = $this->get_table_name();
-	    	$sql = "SELECT * FROM $table_name";
+	    	$sql = "SELECT * FROM `$table_name`";
 	    	$rows = $wpdb->get_results($sql, 'ARRAY_A');
-
+	    	
 	    	if ($rows) {
 		        $output_filename = 'cwd_dynamic_maps_marker_data_' .date('m-d-Y'). '.csv';
 		        $output_handle = @fopen('php://output', 'w');
@@ -818,51 +618,42 @@ class Cwd_Dynamic_Maps_Marker_Table {
 		global $wpdb;
 		$table_name = $this->get_table_name();
 
-		$i = 0;
+		var_dump($cols);
+
+		$res = 0;
 		foreach ($cols as $col) {
-			$sql = "ALTER table $table_name ADD $col varchar(255) DEFAULT ''";
-			$wpdb->query($sql);
-			$i++;
+			$sql = "ALTER table `$table_name` ADD `$col[0]` varchar(255) DEFAULT '' COMMENT '$col[1]' ";
+			$tmp = $wpdb->query($sql);
+			$res = ( $tmp == 1 ? ++$res : $res );
 		}
-		return $i;
+
+		return $res;
 	}
 
 	public function rename_table_cols($cols) {
 		global $wpdb;
 		$table_name = $this->get_table_name();
 
-		$i = 0;
+		$res = 0;
 		foreach ($cols as $key => $val) {
 			if ($key != $val ) {
-				$sql = "ALTER table $table_name Change COLUMN $key $val varchar(255) DEFAULT ''"; 
-				$wpdb->query($sql);
-				$i++;
-		
-				/*
-				$sql = "ALTER Table $table_name ADD $val varchar(255)";
-				$wpdb->query($sql);
-				$sql = "UPDATE $table_name SET $val = $key";
-				$wpdb->query($sql);
-				$sql = "ALTER Table $table_name DROP COLUMN $key"; 
-				$wpdb->query($sql);
-				*/
+				$sql = "ALTER table `$table_name` Change COLUMN `$key` `$val` varchar(255) DEFAULT ''"; 
+				$res = ( ($wpdb->query($sql) == 1)? ++$res : $res );
 			}
 		}
-		return $i;
+		return $res;
 	}//End rename_table_cols()
 
 	public function delete_table_cols($cols) {
 		global $wpdb;
 		$table_name = $this->get_table_name();
 
-		$i = 0;
-		$res;
+		$res = 0;
 		foreach ($cols as $key => $val) {
-			$sql="ALTER Table $table_name DROP COLUMN $val";
-			$wpdb->query($sql);
-			$i++;
+			$sql="ALTER Table `$table_name` DROP COLUMN `$val`";
+			$res = ( ($wpdb->query($sql) == 1)? ++$res : $res );
 		}
-		return $i;
+		return $res;
 	}//End delete_table_cols()
 
 
@@ -871,33 +662,48 @@ class Cwd_Dynamic_Maps_Marker_Table {
 	    	$add_arr = array();
 	    	$del_arr = array();
 	    	$rn_arr = array();
+
+	    	//var_dump($cols);
+	    	
 	    
 	    	foreach( $cols as $key => $value ) {
-	    		if(preg_match('/^cwd_form_data_add_cols_[0-9]+$/', $key)) {
-	    			$add_arr[$key] = str_replace(' ', '_', $value);
+	    		$matches;
+	    		if(preg_match('/^cwd_group_form_data_add_cols_[0-9]+$/', $key)) {
+	    			//$add_arr[$key] = str_replace(' ', '_', $value);
+	    			$tmp = explode('cwd_group_form_data_add_cols_', $key);
+	    			$tmp = ( (sizeof($tmp) === 2) ? $cols['cwd_group_form_data_type_add_cols_'.$tmp[1]] : '');
+
+
+
+	    			$add_arr[$key] = array(str_replace(' ', '_', $value), $tmp);
+	    			//$add_arr[$key] = array( str_replace(' ', '_', $value), $cols['cwd_group_form_data_type_add_cols_'.$tmp[1]]  );
+	    			
+	    			/*$tmp = explode('cwd_group_form_data_add_cols_', $key);
+	    			print_r($tmp);
+	    			var_dump($cols['cwd_group_form_data_type_add_cols_'.$tmp[1]]);*/
+
+
+	    			
 	    		}
-	    		else if(preg_match('/^cwd_form_data_delete_cols_[a-zA-Z0-9_]+$/', $key)) {
+	    		else if(preg_match('/^cwd_group_form_data_delete_cols_[a-zA-Z0-9_]+$/', $key)) {
 	    			$del_arr[$key] = str_replace(' ', '_', $value);
 	    		}
-	    		else if(preg_match('/^cwd_form_data_curr_cols_[a-zA-Z0-9_]+$/', $key)) {
-	    			$key = substr($key, 24); // remove 24 characters to get the name
+	    		else if(preg_match('/^cwd_group_form_data_curr_cols_([a-zA-Z0-9_]+)$/', $key, $matches)) {
+	    			$key = $matches[1];
 	    			$rn_arr[$key] = str_replace(' ', '_', $value);
 	    		}
 	    		else {}
 	    	}
 
-	    	//print_r(json_encode($map_settings));
-	    	//print_r($add_arr);
+	    		var_dump($add_arr);
 
 	    		$add_res = empty($add_arr) ? 0 : $this->add_table_cols($add_arr);
-	    	
 	    		$del_res =  empty($del_arr) ? 0 : $this->delete_table_cols($del_arr);
-	    	
 	    		$rn_res =  empty($rn_arr) ? 0 : $this->rename_table_cols($rn_arr);
 
 
 
-		return $add_res." column(s) added\n".$del_res." column(s) deleted\n".$rn_res." column(s) renamed";  
+		return "\n".$add_res." column(s) added\n".$del_res." column(s) deleted\n".$rn_res." column(s) renamed";  
 	}//End update_marker_cols()
 
 }//End class Cwd_Dynamic_Maps_Marker_Table 
@@ -1139,10 +945,13 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
         $hidden = $this->get_hidden_columns();
         $sortable = $this->get_sortable_columns();
         $data = $this->table_data();
-        $perPage = 5;
+        $perPage = 3;
+
+        
 
         // Filter Data by Search
-        $filter = isset ($_REQUEST['s']) ? wp_unslash( trim( $_REQUEST['s'] ) ) : '';
+        $filter = isset ($_REQUEST['cwd_s_'.$this->cwd_table_type]) ? wp_unslash( trim( $_REQUEST['cwd_s_'.$this->cwd_table_type] ) ) : '';
+
         if ($filter) {
         	$data = array_values( array_filter( $data, function( $row ) use( $filter ) {
 				foreach( $row as $row_val ) {
@@ -1154,16 +963,61 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
         }
 
         usort( $data, array( &$this, 'sort_data' ) );
-        $currentPage = $this->get_pagenum();
+
+        //$currentPage = $this->get_pagenum(); //ORIGINAL
+        //$currentPage = ( !empty($_GET['cwd_paged']) ? $_GET['cwd_paged'] : 1 ); // reset pagenum internally
+
+
+        //$currPage = isset($_REQUEST['paged']) ? max(0, intval($_REQUEST['paged'] -1) * $perPage) : 1;
+        //var_dump($this->cwd_table_type);
+        //print_r("Total Pages: ");
+        
+
+        //$currentPage = ( isset($_REQUEST['cwd_paged_'.$this->cwd_table_type]) ?  min(ceil($totalItems/$perPage), max(1, intval($_REQUEST['cwd_paged_'.$this->cwd_table_type]))) : 1 );
+
+
         $totalItems = count($data);
+
+        $currentPage = ( isset($_REQUEST['cwd_paged_'.$this->cwd_table_type]) ?  min(ceil($totalItems/$perPage), max(1, intval($_REQUEST['cwd_paged_'.$this->cwd_table_type]))) : 1 );
+
+        //print_r('Total Items: '.$totalItems);
+
         $this->set_pagination_args( array(
             'total_items' => $totalItems,
             'per_page'    => $perPage
         ) );
+
+
         $data = array_slice($data,(($currentPage-1)*$perPage),$perPage);
         $this->_column_headers = array($columns, $hidden, $sortable);
         $this->items = $data;
+
+        //$this->cwd_paged = 1;
+        //print_r('$: '.var_dump($this->cwd_paged()) );
+        //var_dump($this->cwd_table_type);
+        //print_r($this->get_pagenum());
+        //print_r('----------');
+       // var_dump($this);
+        //var_dump($this->$_pagination_args);
+        print_r('Page: ');
+        var_dump($currentPage);
+        print_r('Max Page: ');
+        var_dump(ceil($totalItems/$perPage));
+        print_r('Items: ');
+        var_dump($totalItems);
+
+
+        //var_dump( get_query_var('paged') );
+        //var_dump($_REQUEST['cwd_paged']);
+
+        $this->process_bulk_action();
     }
+
+/*    public function cwd_paged() {
+    	return 1;
+    }
+*/
+
 
     // Returns an associative array containing the bulk action.
 	public function get_bulk_actions() {
@@ -1179,6 +1033,43 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
 		);
 		return $actions;
 	}
+
+
+
+	public function process_bulk_action() {
+        // security check!
+        if ( isset( $_POST['_wpnonce'] ) && ! empty( $_POST['_wpnonce'] ) ) {
+            $nonce  = filter_input( INPUT_POST, '_wpnonce', FILTER_SANITIZE_STRING );
+            $action = 'bulk-' . $this->_args['plural'];
+            if ( ! wp_verify_nonce( $nonce, $action ) )
+                wp_die( 'Nope! Security check failed!' );
+        }
+
+        $action = $this->current_action();
+
+        switch ( $action ) {
+
+            case 'cwd-delete':
+                wp_die( 'Delete something' );
+                break;
+
+            case 'cwd-edit':
+            	echo '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!';
+                wp_die( 'Save something' );
+                break;
+
+            case 'cwd-download':
+                wp_die( 'Download something' );
+                break;
+
+            default:
+                // do nothing or something else
+                return;
+                break;
+        }
+
+        return;
+    }
 
 
 
@@ -1203,9 +1094,9 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
 
 	protected function column_group_name( $item ) {		
 		if ($this->cwd_table_obj == 'group') {
-			$actions['group_edit'] = '<a data-group_number="'.$item["group_number"].'" class="cwd-edit-action-group-settings-form" >' . __( 'Edit' ) . '</a>';		
+			$actions['group_edit'] = '<a data-group_number="'.$item["group_number"].'" data-group_name="'.$item["group_name"].'" class="cwd-edit-action-group-settings-form" >' . __( 'Edit' ) . '</a>';		
 
-			return '<div><a class="cwd-edit-action-group-settings-form" data-group_number="'.$item["group_number"].'"/>' . str_replace('_', ' ', $item['group_name']) .'</div>' . $this->row_actions( $actions ); 
+			return '<div><a class="cwd-edit-action-group-settings-form" data-group_number="'.$item["group_number"].'" data-group_name="'.$item["group_name"].'" />' . str_replace('_', ' ', $item['group_name']) .'</div>' . $this->row_actions( $actions ); 
 		}
 		else {
 			return $item['group_name'];
@@ -1294,22 +1185,23 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
         $sql;
 
   		if ($this->cwd_table_type == 'group') {
-  			$table_name = $wpdb->prefix.'cwd_dynamic_maps_marker_data_';
-  			$query = "Show tables like '".$table_name."%'";
+  			$markers = new Cwd_Dynamic_Maps_Marker_Table();
+  			$table_prefix = $markers->get_table_prefix();
+  			$query = "Show tables like '".$table_prefix."\_%'";
   			$arr = $wpdb->get_results($query, ARRAY_N);
   			$sql = array();
   			for ( $i = 0; $i < sizeof($arr); $i++ ) {
   				//remove the common beginning of the table name
-  				$tmp = str_replace( $table_name, '', $arr[$i][0] );
+  				//$tmp = str_replace( $table_prefix.'_', '', $arr[$i][0] );
   				$matches;
-  				preg_match('/^([0-9]+)_([a-zA-Z0-9_]+)$/', $tmp, $matches);
+  				preg_match('/^'.$table_prefix.'_([0-9]+)_([a-zA-Z0-9_]+)$/', $arr[$i][0], $matches);
 
 			    $sql[$i] = (object) array('group_name' => str_replace('_',' ',$matches[2]), 'group_number' => $matches[1] );
 			}
 		}
 		else {
 			$table_name = $this->cwd_table_obj->get_table_name(); //"wp_main_cwd_dynamic_maps_data";
-		    $query = "SELECT * FROM $table_name";
+		    $query = "SELECT * FROM `$table_name`";
 		    $sql = $wpdb->get_results($query);
 		}
 
@@ -1359,18 +1251,19 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
      */
     private function sort_data( $a, $b )
     {
+        //print_r('!!!!!!!HELLO!!!!!'.$this->cwd_table_type);
         // Set defaults
         $orderby = ( ($this->cwd_table_type == 'group') ? 'group_number' : 'id');
         $order = 'asc';
         // If orderby is set, use this as the sort column
-        if(!empty($_GET['orderby']))
+        if(!empty($_GET['cwd_orderby_'.$this->cwd_table_type]))
         {
-            $orderby = $_GET['orderby'];
+            $orderby = $_GET['cwd_orderby_'.$this->cwd_table_type];
         }
         // If order is set use this as the order
-        if(!empty($_GET['order']))
+        if(!empty($_GET['cwd_order_'.$this->cwd_table_type]))
         {
-            $order = $_GET['order'];
+            $order = $_GET['cwd_order_'.$this->cwd_table_type];
         }
 
 		// Clean strings to be all lowercase

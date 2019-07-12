@@ -1,13 +1,52 @@
-/**
+ /**
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
 
- #cwd-frontend-box {
+/* Remove Ugly Thick Box-Shadow Inherited from Theme img's around the google logo*/
+/*img[src="https://maps.gstatic.com/mapfiles/api-3/images/google_white5_hdpi.png"] {*/
+
+div.cwd-cluster-infowindow {
+	 max-height:250px; 
+	 padding-right:15px;
+}
+
+div.cwd-table-wrapper table tr th.cwd-sortable-col {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+div.cwd-table-wrapper table tr th.cwd-sortable-col a {
+	display: contents;
+}
+
+div.cwd-table-wrapper table tr th.cwd-sortable-col a span {
+	display: contents;
+}
+
+div.cwd-table-wrapper:hover table tr th.cwd-sortable-col a span.sorting-indicator::before {
+	color:#00a0d2;
+}
+
+div.cwd-table-wrapper table tr th.cwd-sortable-col a span.sorting-indicator::before {
+	font: 400 20px dashicons;
+}
+
+div.cwd-table-wrapper table tr th.cwd-sortable-col.asc a span.sorting-indicator::before {
+	content: "\f140";
+}
+
+div.cwd-table-wrapper table tr th.cwd-sortable-col.desc a span.sorting-indicator::before {
+	content: "\f142";
+}
+
+.cwd-map-wrap-frontend img {
+	box-shadow: 0 0 0 0px rgba(0,0,0,0) !important;
+}
+
+ .cwd-frontend-box {
  	border: 1px solid #e5e5e5;
  	width:100%;
-
-
  	width: 100%;
     height: auto;
     box-sizing: content-box;
@@ -16,12 +55,12 @@
     padding: 10px;
  }
 
- #cwd-map-wrap-frontend {
+ .cwd-map-wrap-frontend {
  	min-height: 400px;
  	height:auto;
 	width: 100%;
 	position: relative; 
- 	overflow: hidden;
+ 	/*overflow: hidden;*/
  }
 
  .cwd-map-button-panel {
@@ -180,7 +219,7 @@ input::placeholder {
 }
 
 @media only screen and (max-width: 900px) {
-	#cwd-map-wrap-frontend {
+	.cwd-map-wrap-frontend {
 		float:none !important;
 		width:100% !important;
 	}
@@ -189,7 +228,7 @@ input::placeholder {
 		width:100% !important;
 	}
 
-	#cwd-frontend-box {
+	.cwd-frontend-box {
 		display: inline-block;
 	}
 }
@@ -197,5 +236,13 @@ input::placeholder {
 	.displaying-num {
 		display:none;
 	}
+}
+
+.cwd-map-home-button {
+	opacity:.65;
+}
+
+.cwd-map-home-button:hover {
+	opacity:.85 !important;
 }
 

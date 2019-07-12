@@ -10,34 +10,13 @@
  * @package    Cwd_Dynamic_Maps
  * @subpackage Cwd_Dynamic_Maps/admin/partials
  */
+
 ?>
+
+
 
 <div class="wrap"> 
 	<h1>Edit CWD Maps</h1>
-
-	<!--
-		<table>
-			<tr>
-				<th>Latitude</th>
-				<th>Longitude</th>
-				<th></th>
-			</tr>
-			<tr>
-				<td>
-					<input type="text" name="latitude" value=""/>
-				</td>
-				<td>
-					<input type="text" name="longitude" value=""/>
-				</td>
-			</tr>
-		</table>
-	-->
-		<?php 
-
-	//$wp_list_table = new Cwd_Extend_WP_Admin_Table_Maps('map');
-
-	?>
-
 
 	<div id="cwd-import-export" class="cwd-import-export-section cwd-admin-block" >
 		<h1>Import Maps</h1>
@@ -234,6 +213,7 @@
 		<!--<input type="submit" name="update_map" class="button button-primary" value="Save" />-->
 		<div class="cwd-button-wrap"> 
 			<button id="cwd-map-form-button" type="button" class="button button-primary cwd-right">Save Map</button>
+			<button id="cwd-delete-map-btn" type="button" class="button button-secondary cwd-right cwd-invisible">Delete</button>
 		</div>
 
 	</form>

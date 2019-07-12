@@ -27,36 +27,31 @@
 			?>					
 	</form>
 
-	<form id="cwd-marker-cols-update-form" class="cwd-admin-block"> 
-		<input type="hidden" name="marker_group" value="" >
-
-		<table id="table-col-name-form" class="form-table">
+	<div class="cwd-admin-block" style="padding-bottom:40px;"> 
+	<form id="cwd-groups-update-form">
+		<table id="cwd-table-groups-form" class="form-table">
 			<thead>
-				<th><h1>Data Columns for Marker Group</h1></th>
+				<th id="title"><h1>Create NEW Marker Group</h1></th>
 			</thead>
-			<tbody id="cwd-tbody-col-name-form">
-				<tr class="no-map-selected" >
-					<td class="no-selection-td" ><i>Please SELECT a Marker Group from the table above to edit the available input fields for it's markers</i></td>
+			<tbody id="cwd-tbody-groups-form">
+				<tr id="form_group_number_row" >
+					<th>Number:</th>
+					<td>
+						<span></span> 	
+						<input type="hidden" class="" name="group_number" value=""/>
+					</td>
 				</tr>
-				<?php 
-					//$col_options = Cwd_Dynamic_Maps_Marker_Table::get_table_cols_clean_2('r');
-
-					/*
-					$markers = new Cwd_Dynamic_Maps_Marker_Table();
-					$col_options = $markers->get_table_cols_clean_2();
-					*/
-
-					/*foreach ($col_options as $key => $val) {
-						echo '<tr>
-								<td>
-									<input type="text" class="regular-text" name="cwd_form_data_curr_cols_'.esc_attr($val).'" value="'. str_replace('_', ' ', esc_attr($val)).'" />
-								</td>
-								<td>
-									<input type="button" class="cwd_options_remove_table_col_button cwd-left button button-secondary" value="Delete"/> 
-								</td>
-							</tr>';
-					}*/
-				?>
+				<tr id="form_group_name_row" >
+					<th>Name:</th>
+					<td>
+						<input type="text" class="regular-text" name="group_name" value=""/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<h2>Edit Data Columns</h2>
+					</td>
+				</tr>
 	        </tbody>
 	        <tfoot>
 				 <tr>
@@ -68,7 +63,94 @@
 		    </tfoot>
 
 		</table>
-		<div class="cwd-button-wrap"> 
-			<button id="cwd-cols-form-button" type="button" class="button button-primary cwd-right">Update Columns</button>
-		</div>
+		<button id="cwd-group-form-button" type="button" class="button button-primary cwd-right">Save Group</button>
 	</form>
+		<button id="cwd-group-delete-btn" type="button" class="button button-secondary cwd-right cwd-invisible">Delete Group</button>
+	</div>
+
+	<form id="cwd-group-infowindow-form" class="cwd-admin-block" method="post" action="options.php">
+		<?php 
+           // settings_fields( 'cwd_dynamic_maps_displays' );
+           // do_settings_sections( 'cwd_dynamic_maps_displays' );       
+                   
+		?>
+
+		<h1>HTML for Infowindow Display</h1>
+		<p><i>Leave Blank for Default Display</i></p>
+		<p>Include Data Dynamically as $cwd-infowindow-<i><b>[NAME_OF_DATA_COLUMN]</b></i></p>
+		<p><i>(e.g. &lt;p&gt;Name: $cwd-infowindow-name &lt;/p&gt; -> Name: John Smith )</i></p>
+	
+		<!--<input type="text" class="regular-text" name="cwd_dynamic_maps_display_infowindow" value="<?php //echo esc_attr( get_option('cwd_dynamic_maps_display_infowindow') ); ?>" />-->
+		<?php 
+			$old_displays = get_option('cwd_dynamic_maps_display_infowindow');
+			$displays = $old_displays;
+
+
+			//echo gettype($old_displays);
+			//echo var_dump($old_displays);
+	//		print_r($displays);
+	//		var_dump($displays) ;
+	
+		?>
+		<!-- <textarea style="width:100%;" name="cwd_dynamic_maps_tmp" ><?php// echo $displays[$tmp] ?></textarea> -->
+
+		<?php 
+		//$displays[$tmp] = 'ccc'; 
+		//echo $displays[$tmp];
+	//	var_dump($displays);
+		//update_option('cwd_dynamic_maps_display_infowindow', $displays);
+		?>
+		
+	<!--	<input type="text" name=<?php //echo 'cwd_dynamic_maps_display_infowindow['.$tmp.']';?> > <?php //echo  esc_textarea($displays[$tmp]) ; ?> </input>-->
+
+		<div class="cwd-button-wrap"> 
+			<button id="cwd-group-form-display-button" type="button" class="button button-primary cwd-right">Save Infowindow Display</button>
+		</div>
+
+		<?php
+           // submit_button(); 
+        ?>
+	</form>
+
+	<form id="cwd-group-cluster-form" class="cwd-admin-block" method="post" action="options.php">
+		<h1>HTML for Infowindow <b>Cluster</b> Display</h1>
+		<p><i>Leave Blank for Default Display</i></p>
+		<p>Include Data Dynamically as $cwd-infowindow-<i><b>[NAME_OF_DATA_COLUMN]</b></i></p>
+		<p><b></b></p>
+		<p><i>(e.g. &lt;span&gt;Name: $cwd-infowindow-name &lt;/span&gt; -> <br>Name: John Smith<br>Name: John Ralph<br>Name: John Doe<br>... )</i></p>
+
+		
+		<?php 
+			$old_displays = get_option('cwd_dynamic_maps_display_cluster');
+			//echo $old_displays;
+			//echo gettype($old_displays);
+			$displays = $old_displays;
+	//		print_r($displays);
+	//		var_dump($displays) ;
+	
+		?>
+
+		<div class="cwd-button-wrap"> 
+			<button id="cwd-group-form-cluster-button" type="button" class="button button-primary cwd-right">Save Cluster Display</button>
+		</div>
+
+
+
+	</form>
+	<!-- 
+<div style="align-items:center; display:flex; box-sizing:content-box; padding:10px 0 10px 0; background-color:#333333; border-bottom:1px solid black; ">
+     <span class="cwd-infowindow-img-wrap" style=" padding-left:10px; padding-right:10px; "><img src="$cwd-infowindow-img" width="50px;" height="auto"; /></span>
+     <span style=" padding-right:10px;"><h2 style="color:white; text-align:center; margin-bottom:0px;"><strong> <span class="cwd-infowindow-name">$cwd-infowindow-Name</span></strong></h2> 
+     </span>
+</div>
+<div style="display:flex; box-sizing:content-box;">
+	<span style="height:auto; width:40%; float:left; padding:10px; background-color:#A9A9A9;">
+		<p>No. <span class="cwd-infowindow-burial-site-number">$cwd-infowindow-Burial_Site_Number</span></p>
+		<p>Date: <span class="cwd-infowindow-death">$cwd-infowindow-Death</span></p>
+	</span>
+	<span style="height:auto; width:60%; float:right; padding:10px; border-left:1px solid grey; background-color:#FDFD96;">
+                 <span>$cwd-infowindow-Name</span>
+		<p>Some Content</p>
+	</span>
+</div>
+	-->

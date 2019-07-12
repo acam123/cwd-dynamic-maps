@@ -99,6 +99,11 @@ class Cwd_Dynamic_Maps {
 	 */
 	private function load_dependencies() {
 
+		//This should be done in hook admin-init
+		if (!session_id()) {
+    		session_start();
+		}
+
 		/**
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.

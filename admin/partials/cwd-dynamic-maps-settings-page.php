@@ -19,10 +19,19 @@
  * The following form adds wordpress registered options to the options table
  * registration is hooked in Cwd_Dynamic_Maps & defined in Cwd_Dynamic_Maps_Admin
  */
-	
 
 ?>
 
+	<h2>How to Use</h2>
+	<p>
+		<b>1) </b> Get a <a href="https://developers.google.com/maps/documentation/javascript/get-api-key">Google Maps JavaScript API Key</a> and enter it below. <i>(There is a free option with usage restriction that should be suitable for most smaller organizations.)</i><br/>
+		<b>2) </b> Create a Map in the Maps Page<br/>
+		<b>3) </b> <i>(Optional)</i> Create a Marker Group in the Groups Page to display on the Map.<br/>
+		<b>4) </b> <i>(Optional)</i> Create Markers in the Markers Page to add to the Marker Group.</br/>
+		<b>5) </b> Add the Shortcode [cwdmaps map="<b><i>MAP_NUMBER</i></b>" markers="<b><i>MARKER_GROUP_NUMBER</i></b>"] to your post/page.
+	</p>
+
+	
 	<form method="post" action="options.php">
             <?php 
                 settings_fields( 'cwd_dynamic_maps_options' );

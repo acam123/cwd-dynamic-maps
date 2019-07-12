@@ -29,238 +29,1146 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
+	/*
+	 * Save Infowindow Display for marker group
+	 */
+	/*
+	$(function() {
+ 		$("#cwd-group-form-display-button").click(function(){
+		 	var post_data = $("#cwd-group-infowindow-form").serialize()+"&action=cwd_request&param=update_infowindow";
+		 	$.post(cwd_ajax_url, post_data, function(response){
+		 		alert(response);
+		 		//window.location.reload(true);
+		 		//$(this).scrollTop(0);
+
+		 	})
+		})// End #cwd-group-form-display-button click action
+ 	})
+ 	*/
+
+ 	/*
+	 * Save Cluster Display for marker group 
+	 */
+	/*
+	$(function() {
+ 		$("#cwd-group-form-cluster-button").click(function(){
+		 	var post_data = $("#cwd-group-cluster-form").serialize()+"&action=cwd_request&param=update_cluster_display";
+		 	//alert(post_data);
+		 	$.post(cwd_ajax_url, post_data, function(response){
+		 		alert(response);
+		 		//window.location.reload(true);
+		 		//$(this).scrollTop(0);
+
+		 	})
+		})// End #cwd-group-form-cluster-button click action
+ 	});
+ 	*/
+
+
+	//alert(location.toString().split('?page=')[1]);
+
+	 /*
+	  * Add Image Button for marker form
+	  */
+	$(function() {
+		 if ( $('.set_custom_images').length > 0 ) {
+		 	
+	        if ( typeof wp !== 'undefined' && wp.media /*&& wp.media.editor*/) {
+	            
+	        	$(".remove_custom_images").click( function(e) {
+	        		e.preventDefault();
+	        		var button = $(this);
+	        		var id = button.parent().find('input[id="process_custom_images"]');
+	        		var img = button.parent().find('img[id="cwd-img-upload"]');
+	        		id.val('');
+	        		img.attr('src', cwd_plugins_url + "/cwd-dynamic-maps/public/img/camera-icon.svg" );
+
+	        	});
+
+	            $(".set_custom_images").click( function(e) {
+	                e.preventDefault();
+	                var button = $(this);
+	                //var id = button.prev();
+	                var id = button.parent().find('input[id="process_custom_images"]');
+
+	                var file_frame;
+	                var img = button.parent().find('img[id="cwd-img-upload"]');
+
+	                if ( file_frame ) {
+				        file_frame.open();
+				        return;
+				    }
+
+				    file_frame = wp.media.frames.file_frame = wp.media(
+				    	{
+			            	title: 'Select or Upload Media Of Your Chosen Persuasion',
+			            	button: {
+			                	text: 'Use this media'
+			            	},
+			            	multiple: false  // Set to true to allow multiple files to be selected
+			        	}
+			        );
+
+			        file_frame.on('select', function() { 
+			        	var attachment = file_frame.state().get('selection').first().toJSON();
+			            var newwurl = attachment.url.split('/wp-content');
+			            //id.val(attachment.id);
+
+			            //id.val(attachment.url); //!!!
+			            id.val( '/wp-content'+newwurl[1] );
+
+			            //img.attr('src', '/wp-content'+newwurl[1] );
+			            img.attr('src', attachment.url );
+
+			            console.log(img);
+			            //console.log('/wp-content'+newwurl[1]);
+			            console.log(newwurl);
+			            file_frame.close();
+			        });
+
+			        file_frame.open();
+
+        
+	               /*
+	                wp.media.editor.send.attachment = function(props, attachment) {
+	                    id.val(attachment.id);
+	                    console.log(attachment);
+	                    console.log(props);
+	                    console.log(wp.media);
+	                    var img = button.parent().find('img[id="cwd-img-upload"]');
+	                    img.attr('src', attachment.url);
+	                };
+	                wp.media.editor.open(button);
+	                */
+	                
+	                return false;
+	            });
+	        }
+	    }
+	});
 
 	/*
-	 * Select Map for Map Settings Form
+	 * For Maps Page
 	 */
 	$(function() {
 
-		$(".cwd-edit-action-map-settings-form").click( function(event) {
-			var thisLink = $(this);
-			var map_id = thisLink.attr('data-map_id');
-			var map_data = JSON.parse(cwd_map_data);
-			var selectedMap = map_data.find(function (obj) { return obj.id == map_id; } );
+		// load based on specific cwd admin page - map
+		var currPage = location.toString().split('?page=')[1];
+		var expr = /(cwd_maps_maps_edit)(.*)/;
+		var matches = currPage.match(expr);
 
-			// Fill Map Form
-			var map_settings_table = $("#map-settings-form table");	
-			var td_map_title = map_settings_table.find('th[id="title"] h1').text('Edit Map Settings');
+		var base = matches;
 
-			var tr_map_id = map_settings_table.find('tr[id="map_id"]').show();
-			var td_map_id_text = tr_map_id.find('td span').text(map_id);
-			var td_map_id_input = tr_map_id.find('td input').val(map_id);
 
-			var td_map_name = map_settings_table.find('td[id="map_name"] input').val( selectedMap['mapName'].replace(/_/g, ' ') );
-			var td_map_center_lat = map_settings_table.find('td[id="center_lat"] input').val( selectedMap['centerLat'] );
-			var td_map_center_lng = map_settings_table.find('td[id="center_lng"] input').val( selectedMap['centerLng'] );
-			var td_map_zoom = map_settings_table.find('td[id="zoom"] input').val( selectedMap['zoom'] );
-			var td_map_min_zoom = map_settings_table.find('td[id="min_zoom"] input').val( selectedMap['minZoom'] );
-			var td_map_max_zoom = map_settings_table.find('td[id="max_zoom"] input').val( selectedMap['maxZoom'] );
-			var td_map_type_id = map_settings_table.find('td[id="map_type_id"] div input').filter('[value="'+selectedMap["mapTypeId"]+'"]').attr('checked', true);	
-			var td_map_tilt = map_settings_table.find('td[id="tilt"] input').filter('[value="'+selectedMap["tilt"]+'"]').attr('checked', true);
-			var td_map_heading = map_settings_table.find('td[id="heading"] input').filter('[value="'+selectedMap["heading"]+'"]').attr('checked', true);
-			var td_map_north_bound = map_settings_table.find('td[id="north_bound"] input').val( selectedMap['northBound'] );
-			var td_map_east_bound = map_settings_table.find('td[id="east_bound"] input').val( selectedMap['eastBound'] );
-			var td_map_south_bound = map_settings_table.find('td[id="south_bound"] input').val( selectedMap['southBound'] );
-			var td_map_west_bound = map_settings_table.find('td[id="west_bound"] input').val( selectedMap['westBound'] );
-			var td_map_polyline = map_settings_table.find('td[id="polyline"] input').val( selectedMap['polyline']);//.replace(/\\/g, '') );
-		})
+		if (matches !== null && typeof(matches[1]) !== 'undefined' && matches[1] === 'cwd_maps_maps_edit') {
 
+			cwd_match('map', base);
+
+			/* 
+			 * Update Map button - calls on button click by including cwd-map-form-button in button tag 
+			 * NOTE: avoids page refresh of wordpress defined submit_button();
+			 */
+	 		$("#cwd-map-form-button").click(function(){
+			 	var post_data = $("#map-settings-form").serialize()+"&action=cwd_request&param=update_map";
+			 	$.post(cwd_ajax_url, post_data, function(response){
+			 		alert(response);
+			 		window.location.reload(true);
+			 		$(this).scrollTop(0);
+
+			 	})
+			})// End #cwd-map-form-button click action
+
+			
+	 		// Delete Map Action
+	 		$("#cwd-delete-map-btn").click(function(){
+					//alert(map_id);
+				var map_num = $('#map-settings-form tr#map_id td span').text();
+				var post_data = "map_id="+map_num+"&action=cwd_request&param=delete_map";
+				//alert(post_data);
+				$.post(cwd_ajax_url, post_data, function(response) {
+					alert(response);
+					window.location.reload(true);
+				})
+			})
+
+			/*
+			 * Select Map for Map Settings Form
+			 */
+			$(".cwd-edit-action-map-settings-form").click( function(event) {
+				var thisLink = $(this);
+				var map_id = thisLink.attr('data-map_id');
+
+				//alert(typeof(map_id) + map_id.length + map_id);
+				//console.log(map_id);//alert(map_id);
+
+				var map_data = JSON.parse(cwd_map_data);
+				var selectedMap = map_data.find(function (obj) { return obj.id == map_id; } );
+
+				var delete_map_btn = $("#cwd-delete-map-btn");
+				delete_map_btn.css('visibility', 'visible');
+
+				// Fill Map Form
+				var map_settings_table = $("#map-settings-form table");	
+				var td_map_title = map_settings_table.find('th[id="title"] h1');
+				td_map_title.text('Edit Map Settings');
+
+				var tr_map_id = map_settings_table.find('tr[id="map_id"]').show();
+				var td_map_id_text = tr_map_id.find('td span').text(map_id);
+				var td_map_id_input = tr_map_id.find('td input').val(map_id);
+
+				var td_map_name = map_settings_table.find('td[id="map_name"] input').val( selectedMap['mapName'].replace(/_/g, ' ') );
+				var td_map_center_lat = map_settings_table.find('td[id="center_lat"] input').val( selectedMap['centerLat'] );
+				var td_map_center_lng = map_settings_table.find('td[id="center_lng"] input').val( selectedMap['centerLng'] );
+				var td_map_zoom = map_settings_table.find('td[id="zoom"] input').val( selectedMap['zoom'] );
+				var td_map_min_zoom = map_settings_table.find('td[id="min_zoom"] input').val( selectedMap['minZoom'] );
+				var td_map_max_zoom = map_settings_table.find('td[id="max_zoom"] input').val( selectedMap['maxZoom'] );
+				var td_map_type_id = map_settings_table.find('td[id="map_type_id"] div input').filter('[value="'+selectedMap["mapTypeId"]+'"]').attr('checked', true);	
+				var td_map_tilt = map_settings_table.find('td[id="tilt"] input').filter('[value="'+selectedMap["tilt"]+'"]').attr('checked', true);
+				var td_map_heading = map_settings_table.find('td[id="heading"] input').filter('[value="'+selectedMap["heading"]+'"]').attr('checked', true);
+				var td_map_north_bound = map_settings_table.find('td[id="north_bound"] input').val( selectedMap['northBound'] );
+				var td_map_east_bound = map_settings_table.find('td[id="east_bound"] input').val( selectedMap['eastBound'] );
+				var td_map_south_bound = map_settings_table.find('td[id="south_bound"] input').val( selectedMap['southBound'] );
+				var td_map_west_bound = map_settings_table.find('td[id="west_bound"] input').val( selectedMap['westBound'] );
+				var td_map_polyline = map_settings_table.find('td[id="polyline"] input').val( selectedMap['polyline']);//.replace(/\\/g, '') );
+			})
+		}// End if page is map
 	});
 
 	/*
-	 * Select Group for Marker cols Edit Form
+	 * For Groups Page 
 	 */
-
 	 $(function() {	
-		$(".cwd-edit-action-group-settings-form").click( function(event) {
+	 	// load based on specific cwd admin page
+	 	var currPage = location.toString().split('?page=')[1];
+		var expr = /(cwd_maps_groups_edit)(.*)/;
+		var matches = currPage.match(expr);
 
-			var map_id = 1;
-			var thisLink = $(this);
-			var groupNum = thisLink.attr('data-group_number');
+		var base = matches;
+
+		if (matches !== null && typeof(matches[1]) !== 'undefined' && matches[1] === 'cwd_maps_groups_edit') {
+
+			cwd_match('group', base);
+
+			/* 
+			 * Update Group form button - calls on button click by including cwd-group-form-button in button tag 
+			 * NOTE: avoids page refresh of wordpress defined submit_button();
+			 */
+			$("#cwd-group-form-button").click(function(){
+			 	var post_data = $("#cwd-groups-update-form").serialize()+"&action=cwd_request&param=update_marker_cols";
+			 	$.post(cwd_ajax_url, post_data, function(response){
+			 		alert(response);
+			 		window.location.reload(true);
+			 		window.scrollTo(0,0);
+			 	})
+			 });
+
+			/*
+			 * Save Infowindow Display for marker group
+			 */
+	 		$("#cwd-group-form-display-button").click(function(){
+			 	var post_data = $("#cwd-group-infowindow-form").serialize()+"&action=cwd_request&param=update_infowindow";
+			 	$.post(cwd_ajax_url, post_data, function(response){
+			 		alert(response);
+			 		//window.location.reload(true);
+			 		//$(this).scrollTop(0);
+
+			 	})
+			}); // End #cwd-group-form-display-button click action
+
+
+		 	/*
+			 * Save Cluster Display for marker group 
+			 */
+	 		$("#cwd-group-form-cluster-button").click(function(){
+			 	var post_data = $("#cwd-group-cluster-form").serialize()+"&action=cwd_request&param=update_cluster_display";
+			 	//alert(post_data);
+			 	$.post(cwd_ajax_url, post_data, function(response){
+			 		alert(response);
+			 		//window.location.reload(true);
+			 		//$(this).scrollTop(0);
+
+			 	})
+			}); // End #cwd-group-form-cluster-button click action
+
+
+
+
+			/*
+			 * Add Input Fields Dynamically to form to set up Table Cols
+			 */
+			$("#cwd_options_add_input_button").click(function() {
+		 		var tbody = $('#cwd-tbody-groups-form');
+		 		var count = $('#cwd-tbody-groups-form tr[class="cwd_form_group_marker_cols_row"]').length;
+		 		var tr = $('<tr>').attr('class', 'cwd_form_group_marker_cols_row');
+		 		var td = $('<td>');
+		 		var space_td = $('<td>');
+		 		//Make the name attribute iterated off of the last number
+		 		var input = $('<input>').attr('class','regular-text').attr('type', 'text').attr('name', 'cwd_group_form_data_add_cols_'+(count)); 
+
+		 		var type_td = $('<td>');
+		 		var type = $('<select>').attr('name', 'cwd_group_form_data_type_add_cols_'+(count++));
+		 
+		 		var opt = $('<option>').text('Text').val('text');
+		 		type.append(opt);
+		 		opt = $('<option>').text('Long Text').val('textarea');
+		 		type.append(opt);
+		 		opt = $('<option>').text('Img').val('img');
+		 		type.append(opt);
+
+		 		
+		 		//type_td.append(type);
+
+		 		td.append(input);
+
+		 		td.append(type);
+
+		 		tr.append(space_td);
+		 		//tr.append(type_td);
+		 		tr.append(td);
+		 		//tr.append (type_td);
+		 		tbody.append(tr);	
+		 	})
+
+			/*
+			 * Remove Input Fields Dynamically to form to set up Table Cols
+			 */
+		 	$("#cwd_options_remove_input_button").click(function() {
+		 		var tbody = $('#cwd-tbody-groups-form');
+		 		var last = $('#cwd-tbody-groups-form tr:last');
+		 		var lastClass = last.find('td input[name^="cwd_group_form_data_add_cols_"]');
+
+		 		//check if a new row
+		 		if (lastClass.length >= 1) {
+		 			last.remove();
+		 		}
+		 	})
+
 			
-			// Update Marker Cols Form
-			var marker_cols_form = $("#cwd-marker-cols-update-form");	
-			var marker_hidden_input = marker_cols_form.find('input[name="marker_group"]').val(groupNum);
-			var plus_minus = $("#col-name-plus-minus").css("visibility", "visible");
-			var update_cols_button = $("#cwd-cols-form-button").css("visibility", "visible");
-			var col_name_form_tbody = $("#cwd-tbody-col-name-form").empty();
 
+		 	// Delete Group Action
+		 	$('#cwd-group-delete-btn').click(function() { 
+		 		var groupNum = $("#cwd-groups-update-form tr#form_group_number_row td span").text();
+		 		var groupName = $("#cwd-groups-update-form tr#form_group_name_row td input").val();
 
-			var post_data = "marker_group="+groupNum+"&action=cwd_request&param=select_group";
-			$.post(cwd_ajax_url, post_data, function(response){
-		 		col_name_form_tbody.append(response);
+		 		//alert(groupNum + groupName);
+		 		//var groupNum = thisLink.attr('data-group_number');
+				//var groupName = thisLink.attr('data-group_name');
 
-		 		// Add Delete Functionality (NOTE: must add after delivering the html for the buttons)
-			 	$(".cwd_options_remove_table_col_button").click(function(event) {
-			 		var input = $(this).parent().siblings().find('input');
-			 		var name = input.attr('name');
+		 		var check = confirm("Are you sure you want to delete all markers and data for the group: "+groupName+"?");
+		 		if(check) {
+			 		var post_data = "group_number="+groupNum+"&action=cwd_request&param=delete_group";
+			 		$.post(cwd_ajax_url, post_data, function(response){
+			 			alert(response);
+			 			window.location.reload(true);
+			 			$(this).scrollTop(0);
+			 		})
+		 		}
 
-			 		if ($(this).val() == 'Delete') {
-				 		name = name.split("cwd_form_data_curr_cols_")[1];
-				 		var res = confirm("Are you sure you want to delete "+name);
+		 	});
 
-						if (res) {
-							alert('This column will be permanently deleted from the database when you click save');
-							$(this).parent().parent().css('background-color', 'red');
-							$(this).val('Undo');
-				 			var newName = "cwd_form_data_delete_cols_";
-				 			newName += name;
-				 			input.attr('name', newName);
-				 		}
-				 	}
-				 	else {
-				 		name = name.split("cwd_form_data_delete_cols_")[1];
-				 		$(this).parent().parent().css('background-color', '');
-				 		$(this).val('Delete');
-				 		var newName = "cwd_form_data_curr_cols_";
-				 		newName += name;
-				 		input.attr('name', newName);
-				 	}
-		 		})// End of action on .cwd_options_remove_table_col_button
+			/*
+			 * Select Group for Group Settings Form & Infowindow Display Form
+			 */
+			$(".cwd-edit-action-group-settings-form").click( function(event) {
 
-		 	})// End of $.post(...
-		})// End of form action on .cwd-edit-action-group-settings-form
+				var thisLink = $(this);
+				var groupNum = thisLink.attr('data-group_number');
+				var groupName = thisLink.attr('data-group_name');
+
+				// Add Delete Marker Group Button
+			 	var delete_btn = $("#cwd-group-delete-btn");
+			 	delete_btn.css('visibility', 'visible');
+			 	
+			 	//var delete_btn = $('<button>').attr('id', 'cwd-group-delete-btn').attr('class', 'secondary-button button cwd-right').attr('type', 'button').text('Delete');
+			 	//delete_wrap.append(delete_btn);
+			 	//delete_wrap.html('<button id="cwd-group-delete-btn" class="secondary-button button cwd-right" type="button">Delete</button>');
+
+				// Infowindow Display Form
+				var infoForm = $("#cwd-group-infowindow-form");
+				var oldText = infoForm.find('textarea');
+				oldText.remove();
+				var displayCode = '';
+				if (cwd_infowindow !== null) { displayCode = cwd_infowindow[groupNum]; }
+				if ( typeof(displayCode) === 'undefined' ) { displayCode = ''; }
+				var textArea = '<textarea style="width:100%;" name="cwd_dynamic_maps_display_infowindow['+groupNum+']" >'+displayCode+'</textarea>';
+				infoForm.append(textArea);
+
+				// Cluster Display Form
+				var clusterForm = $("#cwd-group-cluster-form");
+				var oldText = clusterForm.find('textarea');
+				oldText.remove();
+				var displayCode = '';
+				if (cwd_cluster_display !== null) { displayCode = cwd_cluster_display[groupNum]; }
+				if (typeof(displayCode) === 'undefined') {displayCode = ''; }
+				var textArea = '<textarea style="width:100%;" name="cwd_dynamic_maps_display_cluster['+groupNum+']" >'+displayCode+'</textarea>';
+				clusterForm.append(textArea);
+
+				// Group Settings Form 
+				var post_data = "group_number="+groupNum+"&action=cwd_request&param=select_group";
+				$.post(cwd_ajax_url, post_data, function(response){
+			 		//Fill/Replace form
+					var group_form_table = $("#cwd-groups-update-form table");
+					var group_form_title = group_form_table.find('th[id="title"] h1').text('Edit Marker Group');
+
+					var groups_form_tbody = $("#cwd-tbody-groups-form");
+					var old_rows = groups_form_tbody.children('tr[class="cwd_form_group_marker_cols_row"]');
+					var group_num_row = groups_form_tbody.children('tr[id="form_group_number_row"]');
+					var group_num_input = group_num_row.find('input');
+					var num_span = group_num_row.find('span');
+					var group_name_row = groups_form_tbody.children('tr[id="form_group_name_row"]');
+					var group_name_input = group_name_row.find('input[name="group_name"]');
+
+					old_rows.remove();
+					num_span.text(groupNum);
+					group_num_input.val(groupNum);
+					group_name_input.val(groupName);
+					group_num_row.show();
+			 		groups_form_tbody.append(response);
+
+			 		/*$("#cwd-group-delete-btn").click(function(event) {
+			 			alert(groupNum);
+			 		});*/
+
+			 		// Add Delete Functionality to Marker Cols (NOTE: must add after delivering the html for the buttons)
+				 	$(".cwd_options_remove_table_col_button").click(function(event) {
+				 		var input = $(this).parent().find('input[type="text"]');
+				 		console.log(input);
+				 		var name = input.attr('name');
+
+				 		if ($(this).val() == 'Delete') {
+					 		name = name.split("cwd_group_form_data_curr_cols_")[1];
+					 		var check = confirm("Are you sure you want to delete "+name);
+
+							if (check) {
+								alert('This column will be permanently deleted from the database when you click save');
+								$(this).parent().parent().css('background-color', 'red');
+								$(this).val('Undo');
+					 			var newName = "cwd_group_form_data_delete_cols_";
+					 			newName += name;
+					 			input.attr('name', newName);
+					 		}
+					 	}
+					 	else {
+					 		name = name.split("cwd_group_form_data_delete_cols_")[1];
+					 		$(this).parent().parent().css('background-color', '');
+					 		$(this).val('Delete');
+					 		var newName = "cwd_group_form_data_curr_cols_";
+					 		newName += name;
+					 		input.attr('name', newName);
+					 	}
+			 		})// End of action on .cwd_options_remove_table_col_button
+
+			 	})// End of $.post(...
+			})// End of form action on .cwd-edit-action-group-settings-form
+		} // End if page is group
 	});//End jQuery fuction 
 
-
-	/* 
-	 * Update Map button - calls on button click by including cwd-map-form-button in button tag 
-	 * NOTE: avoids page refresh of wordpress defined submit_button();
-	 */
-	$(function () {
-		 $("#cwd-map-form-button").click(function(){
-		 	var post_data = jQuery("#map-settings-form").serialize()+"&action=cwd_request&param=update_map";
-		 	$.post(cwd_ajax_url, post_data, function(response){
-		 		alert(response);
-		 		window.location.reload(true);
-		 		$(this).scrollTop(0);
-
-		 	})
-
-		 })
-	});
-
-
-	/* 
-	 * Update Marker button - calls on button click by including cwd-form-button in button tag 
-	 * NOTE: avoids page refresh of wordpress defined submit_button();
-	 */
-	$(function () {
-		 $("#cwd-form-button").click(function(){
-		 	var post_data = jQuery("#cwd-form-id").serialize()+"&action=cwd_request&param=update_marker";
-		 	$.post(cwd_ajax_url, post_data, function(response){
-		 		alert(response);
-		 	})
-
-		 })
-	});
-
-
-	/* 
-	 * Update Cols for Marker button - calls on button click by including cwd-cols-form-button in button tag 
-	 * NOTE: avoids page refresh of wordpress defined submit_button();
-	 */
-	$(function () {
-		 $("#cwd-cols-form-button").click(function(){
-		 	var post_data = jQuery("#cwd-marker-cols-update-form").serialize()+"&action=cwd_request&param=update_marker_cols";
-		 	$.post(cwd_ajax_url, post_data, function(response){
-		 		alert(response);
-		 		window.location.reload(true);
-		 		window.scrollTo(0,0);
-
-		 	})
-
-		 })
-	});
-
-
-
-
-
-
 	/*
-	 * Add/Remove Input Fields Dynamically to form to set up Table Cols
+	 * Alter CWD Extension of WP Tables to Have Type (map, group) Specific Pagination 
+	 * This allows both a map and group table to work on the same page
 	 */
-	 $(function () {
-	 	$("#cwd_options_add_input_button").click(function() {
-	 		var tbody = $('#cwd-tbody-col-name-form');
-	 		var count = $('#cwd-tbody-col-name-form tr').length;
-	 		var tr = $('<tr>');
-	 		var td = $('<td>');
-	 		//Make the name attribute iterated off of the last number
-	 		var input = $('<input>').addClass("regular-text").attr('type', 'text').attr('name', 'cwd_form_data_add_cols_'+(count++)); 
+	function cwd_match(type, base) {
 
-	 		td.append(input);
-	 		tr.append(td);
-	 		tbody.append(tr);
-	 		
-	 	})
+		//alert('MATCH!!!');
 
+		var expr = new RegExp('(.*)(&cwd_paged_'+type+'=)([0-9]+)(.*)');
 
-	 	$("#cwd_options_remove_input_button").click(function() {
-	 		var tbody = $('#cwd-tbody-col-name-form');
-	 		var last = $('#cwd-tbody-col-name-form tr:last');
-	 		var lastClass = last.find('td input[name^="cwd_form_data_add_cols_"]');
+		var form = $('form[id="cwd-'+type+'-selection-form"]');
+		var searchInput = form.find('input[id="search-search-input"]');
 
-	 		//check if a new row
-	 		if (lastClass.length >= 1) {
-	 			last.remove();
-	 		}
-	 		
-	 	})
+		searchInput[0].name =  'cwd_s_'+type;
 
-	 	/*
-	 	$(".cwd_options_remove_table_col_button").click(function(event) {
+		var pageNavs = form.find('span[class="pagination-links"]');
+		var navBtns = pageNavs.children('span[class="tablenav-pages-navspan"]');
 
-	 		var input = $(this).parent().siblings().find('input');
-	 		var name = input.attr('name');
+		$.each(navBtns, function(key,val) { 
+			var inner = navBtns[key].innerHTML;
+			var label;
+			switch(inner) {
+			  case '«': //'&laquo'
+			    label = 'first-page';
+			    break;
+			  case '‹': //'&lsaquo'
+			    label = 'prev-page';
+			    break;
+			  case '›': //'&rsaquo'
+			    label = 'next-page';
+			    break;
+			  case  '»': //'&raquo'
+			    label = 'last-page';
+			    break;
+			  default:
+			  	label = 'error-err';
+			} 
 
-	 		if ($(this).val() == 'Delete') {
-		 		name = name.split("cwd_form_data_curr_cols_")[1];
-		 		var res = confirm("Are you sure you want to delete "+name);
+			navBtns[key].outerHTML = '<a class="'+label+'" href="" >'
+				+'<span class="screen-reader-text">'+label.charAt(0).toUpperCase()+label.slice(1).replace('-',' ')+'</span>'
+				+'<span aria-hidden="true">'+inner+'</span>'
+			+'</a>';
+		});
 
-				if (res) {
-					alert('This column will be permanently deleted from the database when you click save');
-					$(this).parent().parent().css('background-color', 'red');
-					$(this).val('Undo');
-		 			var newName = "cwd_form_data_delete_cols_";
-		 			newName += name;
-		 			input.attr('name', newName);
-		 		}
-		 	}
-		 	else {
-		 		name = name.split("cwd_form_data_delete_cols_")[1];
-		 		$(this).parent().parent().css('background-color', '');
-		 		$(this).val('Delete');
-		 		var newName = "cwd_form_data_curr_cols_";
-		 		newName += name;
-		 		input.attr('name', newName);
-		 	}
-	 		
-	 	})
-	 	*/
+		var nexts = form.find('a[class="next-page"]');
+	 	var prevs = form.find('a[class="prev-page"]');
+	 	var firsts = form.find('a[class="first-page"]');
+	 	var lasts = form.find('a[class="last-page"]');
 
-	 })
-
-
-
-
-	/*
-	 * Make Update Location Button for Add Marker Form
-	 */
-	 $(function() {
-	 	var buttonWrap = $('<div>')
-	 	var latLngButton = $('<button>').attr('id', 'cwd-update-location').attr('type', 'button').css('float', 'right').addClass('button button-primary').html('Update Location');
-	 	var lngInput = $('input[name="longitude"]');
-	 	//var latLngWrap = lngInput.parent().parent();
-	 	var latLngWrap = lngInput.parent();
-	 	buttonWrap.append(latLngButton)
-	 	latLngWrap.append(buttonWrap);
-	 	//console.log(lngInput.parent().parent());
 	 	
-	 })
-	 //<button id="cwd-update-location" type="button" class="button button-primary">Update Location</button>
+	 	var select = form.find('input[id="current-page-selector"]');
+	 	var textPage = form.find('span[class="tablenav-paging-text"]');
+	 	var totalPages = form.find('span[class="total-pages"]')[0].innerHTML;
 
+	 	
+	 	//alert('Base: '+base);
+	 	var currPage = base[2].match(expr); 
+	 	var opts = base[2];
+	 	opts = opts.split('&');
+
+	 	$.each(opts, function(key, val) { opts[key] = val.split('='); } );
+
+	 	currPage = ( (currPage === null) ? 1 : parseInt(currPage[3]) );
+
+	 	var nextPage = (currPage + 1);
+	 	var prevPage = (currPage - 1);
+	 	nextPage = Math.min(totalPages, nextPage);
+	 	prevPage = Math.max(1, prevPage);
+
+	 	select.val(currPage);
+	 	select.attr('name', 'cwd_paged_'+type);
+		textPage[1].innerHTML = currPage + ' of ' +totalPages;
+
+	 	//$.each(nexts, function(key,val) { alert(key+': '+val); nexts[key].href.replace(/\&paged=[0-9]+/, ''); });
+	 	$.each( nexts, function(key,val) { 
+	 		var str = nexts[key].href;
+	 		var expr = new RegExp(/(.*)(&paged=[0-9]+)(.*)/);
+	 		var matches = str.match(expr);
+	 		nexts[key].href = ( matches !== null ? matches[1]+matches[3] : str);
+	 	} );
+	 	$.each(nexts, function(key,val) { nexts[key].href += '&cwd_paged_'+type+'='+nextPage; });
+
+
+	 	$.each(prevs, function(key,val) { 
+	 		var str = prevs[key].href;
+	 		var expr = new RegExp(/(.*)(&paged=[0-9]+)(.*)/);
+	 		var matches = str.match(expr);
+	 		prevs[key].href = (matches !== null ? matches[1]+matches[3] : str);
+	 	});
+	 	$.each(prevs, function(key,val) { prevs[key].href += '&cwd_paged_'+type+'='+prevPage; });
+
+
+	 	$.each(firsts, function(key,val) { 
+	 		var str = firsts[key].href;
+	 		var expr = new RegExp(/(.*)(&paged=[0-9]+)(.*)/);
+	 		var matches = str.match(expr);
+	 		firsts[key].href = (matches !== null ? matches[1]+matches[3] : str);
+	 	});
+	 	$.each(firsts, function(key,val) { firsts[key].href += '&cwd_paged_'+type+'='+1; });
+
+
+	 	$.each(lasts, function(key,val) { 
+	 		var str = lasts[key].href;
+	 		var expr = new RegExp(/(.*)(&paged=[0-9]+)(.*)/);
+	 		var matches = str.match(expr);
+	 		lasts[key].href = (matches !== null ? matches[1]+matches[3] : str);
+	 	});
+	 	$.each(lasts, function(key,val) { lasts[key].href += '&cwd_paged_'+type+'='+totalPages; });
+		
+		var sorts = form.find('th');
+		//console.log('Sorts: ');
+		//console.log(sorts);
+		sorts = sorts.filter('.sortable');
+		//console.log(sorts);
+		//sorts = sorts.find('a'); // NEED???
+		//console.log(sorts);
+
+
+		$.each(sorts, function(key,val) { 
+			//console.log('@@@@@@@@');
+			//console.log(sorts[key]);
+			var a = sorts[key].firstChild;
+			//console.log(a);
+
+			
+			//var str = sorts[key].href;
+			var str = a.href;
+
+			// Remove old sorts from this table type
+			var expr = new RegExp('(.*)(&cwd_orderby_'+type+'=)([a-zA-z0-9_]+)(.*)');
+			var matches = str.match(expr);
+			str = (matches !== null ? matches[1]+matches[4] : str);
+
+			var expr = new RegExp('(.*)(&cwd_order_'+type+'=)(asc|desc)(.*)');
+			var matches = str.match(expr);
+			str = (matches !== null ? matches[1]+matches[4] : str);
+
+
+
+			// Create new sorts
+			var expr = new RegExp(/(.*)(&orderby=)([a-zA-z0-9_]+)(.*)/);
+			var matches = str.match(expr);
+			//alert('');
+			//alert('Matches: '+matches);
+			str = (matches !== null ? matches[1]+'&cwd_orderby_'+type+'='+matches[3]+matches[4] : str);
+
+			var orderBy = matches[3];
+
+
+			
+			var expr = new RegExp(/(.*)(&order=)(asc|desc)(.*)/);
+			var matches = str.match(expr);
+
+			var orders = ['asc', 'desc']; 
+			//console.log(orders);
+
+
+			var order = matches[3]; 
+			//console.log('M3');
+			//console.log(orderBy);
+			
+			
+			
+			for ( var key in opts ) {
+				if (opts[key].length > 1 && opts[key][0] === 'cwd_orderby_'+type &&  opts[key][1] === orderBy) {
+					//isSorted = opts[key];
+					//console.log('FLIPPED!!!');
+
+					//opts[x][0] === 'cwd_order_'+type; get opt[x][1];
+					order = orders.filter(x => ![order].includes(x)); // Should we get the flip from the active url and not the href of the sortable columns??? 
+
+					
+				}
+			}
+			
+			
+			
+			//console.log(order);
+
+			
+			//alert('Str: ' +str);
+			//alert('Matches: '+matches);
+			//sorts[key].href = (matches !== null ? matches[1]+'&cwd_order_'+type+'='+matches[3]+matches[4] : str);
+			str = (matches !== null ? matches[1]+'&cwd_order_'+type+'='+order+matches[4] : str);
+			//alert('Str: ' +str);
+			a.href = str;
+			//alert(opts);
+
+			
+
+			//Change asc/desc for active orderby col 
+			//if (matches[]) {
+
+			//}
+
+		});
+
+	//	alert(typeof(sorts));
+
+
+	//	var expr = new RegExp('(.*)(&cwd_orderby_'+type+'=)([a-zA-z0-9_]+)(.*)');
+	//		var matches = str.match(expr);
+	
+
+		var tmp = sorts.find(function (obj) { 
+			//var expr = new RegExp('(.*)(&cwd_orderby_'+type+'=)([a-zA-z0-9_]+)(.*)');
+			//return obj.href == map_id; 
+			return obj.href == 'a';//.href == '(.*)(&cwd_orderby_'+type+'=)(tilt)(.*)';
+		});
+
+	//	alert('TMP: ');
+	//	alert(tmp);
+		//console.log('TMP:');
+		//console.log(tmp);
+
+
+		//sorts = sorts.attr('href');
+		//console.log(sorts);
+		//console.log(sorts.hasClass('sortable'));
+		//sorts = sorts.filter(contains(class=""))
+
+		return true;
+	}; // End of cwd_match()
+
+
+
+	/*
+	 * For Markers Page 
+	 */
+	 $(function() {	
+	 	// load based on specific cwd admin page
+	 	var currPage = location.toString().split('?page=')[1];
+	 	var expr = /(cwd_maps_markers_edit)(.*)/;
+		var matches = currPage.match(expr);
+		var base = matches;
+		if (matches !== null && typeof(matches[1]) !== 'undefined' && matches[1] === 'cwd_maps_markers_edit') {
+
+
+			
+			
+			// Ajax Submit
+			/*
+			$("#upload_markers_csv").click( function (event) {
+				var post_data = $("#cwd-import-markers-form").serialize();
+				post_data += "&action=cwd_request&param=import_markers_csv";
+				console.log(post_data);
+
+				var file = $("#file")[0].files[0];
+				console.log( file );
+				console.log($(this));
+
+
+				var formData = new FormData();
+    			//formData.append( 'csv',  file ); 
+    			formData.append( 'name', 'cwd_file' );
+
+    			//formData.append( 'action', 'cwd_request' );
+    			//formData.append( 'param', 'import_markers_csv' );
+
+    			console.log(formData);
+
+    			$.post(cwd_ajax_url, formData, function(response) {
+    				alert(response);
+    			});
+    		});
+    		*/
+
+
+    		//Intercept direct submit
+    		$("#cwd-import-markers-form").on('submit', function(event) {
+    			event.preventDefault();
+    			var post_data = $("#cwd-import-markers-form").serialize();
+    			var expr = /(.*)(marker_export_group=)([0-9]+)(.*)(marker_export_full_name=)([a-zA-z0-9_]+)(.*)/;
+				var matches = post_data.match(expr);
+				var grp_num = matches[3];
+				var grp_full_name = matches[6];
+				//post_data += "&action=cwd_request&param=import_markers_csv";
+				//alert('FORM INTERCEPTED');
+				//console.log(post_data);
+
+				var file = $("#file")[0].files[0];
+				/*console.log( file );
+				console.log($(this));*/
+
+
+				var formData = new FormData();
+    			formData.append( 'cwd_csv',  file ); 
+    			formData.append( 'name', 'cwd_file' );
+
+    			formData.append( 'grp_num', grp_num );
+    			formData.append( 'grp_full_name', grp_full_name );
+
+    			formData.append( 'action', 'cwd_request' );
+    			formData.append( 'param', 'import_markers_csv' );
+
+    			
+    			/*console.log(formData);
+    			for (var key of formData) {
+    				console.log( key );
+    			}*/
+
+    			$.ajax({
+				  url: cwd_ajax_url,
+				  data: formData,
+				  processData: false,
+				  contentType: false,
+				  type: 'POST',
+				  success: function(response){
+				    console.log(response);
+				    alert(response);
+				  }
+				});
+
+    			/*$.post(cwd_ajax_url, formData, function(response) {
+    				alert(response);
+    			});*/
+
+    		});
+
+
+				
+
+
+				//submit form the direct method
+				//$("#cwd-import-markers-form").trigger('submit');
+
+				/*
+				$.post('', 'upload_csv', function(response) {
+					alert(response);
+
+				});
+				*/
+
+
+				/*$.post(cwd_ajax_url, post_data, function(response) {
+					console.log(response);
+					alert('Ajax Success: '+response);
+
+				})*/
+			
+
+
+
+			$("#download_markers_csv").click( function (event) {
+				var post_data = $("#cwd-export-markers-form").serialize();
+				var expr = /(.*)(marker_export_group=)([0-9]+)(.*)(marker_export_full_name=)([a-zA-z0-9_]+)(.*)/;
+				var matches = post_data.match(expr);
+				var grp_num = matches[3];
+				var grp_full_name = matches[6];
+
+				post_data += "&action=cwd_request&param=export_markers_csv";
+
+			 	if (grp_num !== '' && grp_full_name !== '') {
+				 	$.post(cwd_ajax_url, post_data, function(response) {
+				 	
+				 		// Validate response???
+
+					 	var encodedUri = 'data:application/csv;charset=utf-8,' + encodeURIComponent(response);
+						var link = document.createElement("a");
+						link.setAttribute("href", encodedUri);
+						link.setAttribute("download", grp_full_name+".csv");
+						link.innerHTML= "Download Markers Data";
+						document.body.appendChild(link);
+						link.click();
+					})
+				}
+
+			});
+				
+	
+
+
+			/*
+			 * Rewrite table url links to be specific to table type.
+			 */
+			var expr = /(.*)(&cwd_paged=)([0-9]+)(.*)/;
+
+			var matches = matches[2].match(expr);
+
+			/*
+			// !!! START CWD MATCH !!!
+			// Alter Selection Tables by Type so Multiple Tables Work Independently on Same Page
+			function cwd_match(type, base) {
+
+				var expr = new RegExp('(.*)(&cwd_paged_'+type+'=)([0-9]+)(.*)');
+
+				var form = $('form[id="cwd-'+type+'-selection-form"]');
+				var searchInput = form.find('input[id="search-search-input"]');
+
+				searchInput[0].name =  'cwd_s_'+type;
+
+				var pageNavs = form.find('span[class="pagination-links"]');
+				var navBtns = pageNavs.children('span[class="tablenav-pages-navspan"]');
+
+				$.each(navBtns, function(key,val) { 
+					var inner = navBtns[key].innerHTML;
+					var label;
+					switch(inner) {
+					  case '«': //'&laquo'
+					    label = 'first-page';
+					    break;
+					  case '‹': //'&lsaquo'
+					    label = 'prev-page';
+					    break;
+					  case '›': //'&rsaquo'
+					    label = 'next-page';
+					    break;
+					  case  '»': //'&raquo'
+					    label = 'last-page';
+					    break;
+					  default:
+					  	label = 'error-err';
+					} 
+
+					navBtns[key].outerHTML = '<a class="'+label+'" href="" >'
+						+'<span class="screen-reader-text">'+label.charAt(0).toUpperCase()+label.slice(1).replace('-',' ')+'</span>'
+						+'<span aria-hidden="true">'+inner+'</span>'
+					+'</a>';
+				});
+
+				var nexts = form.find('a[class="next-page"]');
+			 	var prevs = form.find('a[class="prev-page"]');
+			 	var firsts = form.find('a[class="first-page"]');
+			 	var lasts = form.find('a[class="last-page"]');
+
+			 	
+			 	var select = form.find('input[id="current-page-selector"]');
+			 	var textPage = form.find('span[class="tablenav-paging-text"]');
+			 	var totalPages = form.find('span[class="total-pages"]')[0].innerHTML;
+
+			 	
+			 	//alert('Base: '+base);
+			 	var currPage = base[2].match(expr); 
+			 	var opts = base[2];
+			 	opts = opts.split('&');
+
+			 	$.each(opts, function(key, val) { opts[key] = val.split('='); } );
+
+			 	currPage = ( (currPage === null) ? 1 : parseInt(currPage[3]) );
+
+			 	var nextPage = (currPage + 1);
+			 	var prevPage = (currPage - 1);
+			 	nextPage = Math.min(totalPages, nextPage);
+			 	prevPage = Math.max(1, prevPage);
+
+			 	select.val(currPage);
+			 	select.attr('name', 'cwd_paged_'+type);
+				textPage[1].innerHTML = currPage + ' of ' +totalPages;
+
+			 	//$.each(nexts, function(key,val) { alert(key+': '+val); nexts[key].href.replace(/\&paged=[0-9]+/, ''); });
+			 	$.each( nexts, function(key,val) { 
+			 		var str = nexts[key].href;
+			 		var expr = new RegExp(/(.*)(&paged=[0-9]+)(.*)/);
+			 		var matches = str.match(expr);
+			 		nexts[key].href = ( matches !== null ? matches[1]+matches[3] : str);
+			 	} );
+			 	$.each(nexts, function(key,val) { nexts[key].href += '&cwd_paged_'+type+'='+nextPage; });
+
+
+			 	$.each(prevs, function(key,val) { 
+			 		var str = prevs[key].href;
+			 		var expr = new RegExp(/(.*)(&paged=[0-9]+)(.*)/);
+			 		var matches = str.match(expr);
+			 		prevs[key].href = (matches !== null ? matches[1]+matches[3] : str);
+			 	});
+			 	$.each(prevs, function(key,val) { prevs[key].href += '&cwd_paged_'+type+'='+prevPage; });
+
+
+			 	$.each(firsts, function(key,val) { 
+			 		var str = firsts[key].href;
+			 		var expr = new RegExp(/(.*)(&paged=[0-9]+)(.*)/);
+			 		var matches = str.match(expr);
+			 		firsts[key].href = (matches !== null ? matches[1]+matches[3] : str);
+			 	});
+			 	$.each(firsts, function(key,val) { firsts[key].href += '&cwd_paged_'+type+'='+1; });
+
+
+			 	$.each(lasts, function(key,val) { 
+			 		var str = lasts[key].href;
+			 		var expr = new RegExp(/(.*)(&paged=[0-9]+)(.*)/);
+			 		var matches = str.match(expr);
+			 		lasts[key].href = (matches !== null ? matches[1]+matches[3] : str);
+			 	});
+			 	$.each(lasts, function(key,val) { lasts[key].href += '&cwd_paged_'+type+'='+totalPages; });
+				
+				var sorts = form.find('th');
+				console.log('Sorts: ');
+				console.log(sorts);
+				sorts = sorts.filter('.sortable');
+				console.log(sorts);
+				//sorts = sorts.find('a'); // NEED???
+				//console.log(sorts);
+
+
+				$.each(sorts, function(key,val) { 
+					console.log('@@@@@@@@');
+					console.log(sorts[key]);
+					var a = sorts[key].firstChild;
+					console.log(a);
+
+					
+					//var str = sorts[key].href;
+					var str = a.href;
+
+					// Remove old sorts from this table type
+					var expr = new RegExp('(.*)(&cwd_orderby_'+type+'=)([a-zA-z0-9_]+)(.*)');
+					var matches = str.match(expr);
+					str = (matches !== null ? matches[1]+matches[4] : str);
+
+					var expr = new RegExp('(.*)(&cwd_order_'+type+'=)(asc|desc)(.*)');
+					var matches = str.match(expr);
+					str = (matches !== null ? matches[1]+matches[4] : str);
+
+
+
+					// Create new sorts
+					var expr = new RegExp(/(.*)(&orderby=)([a-zA-z0-9_]+)(.*)/);
+					var matches = str.match(expr);
+					//alert('');
+					//alert('Matches: '+matches);
+					str = (matches !== null ? matches[1]+'&cwd_orderby_'+type+'='+matches[3]+matches[4] : str);
+
+					var orderBy = matches[3];
+
+
+					
+					var expr = new RegExp(/(.*)(&order=)(asc|desc)(.*)/);
+					var matches = str.match(expr);
+
+					var orders = ['asc', 'desc']; 
+					console.log(orders);
+
+
+					var order = matches[3]; 
+					console.log('M3');
+					console.log(orderBy);
+					
+					
+					
+					for ( var key in opts ) {
+						if (opts[key].length > 1 && opts[key][0] === 'cwd_orderby_'+type &&  opts[key][1] === orderBy) {
+							//isSorted = opts[key];
+							console.log('FLIPPED!!!');
+
+							//opts[x][0] === 'cwd_order_'+type; get opt[x][1];
+							order = orders.filter(x => ![order].includes(x)); // Should we get the flip from the active url and not the href of the sortable columns??? 
+
+							
+						}
+					}
+					
+					
+					
+					console.log(order);
+
+					
+					//alert('Str: ' +str);
+					//alert('Matches: '+matches);
+					//sorts[key].href = (matches !== null ? matches[1]+'&cwd_order_'+type+'='+matches[3]+matches[4] : str);
+					str = (matches !== null ? matches[1]+'&cwd_order_'+type+'='+order+matches[4] : str);
+					//alert('Str: ' +str);
+					a.href = str;
+					//alert(opts);
+
+					
+
+					//Change asc/desc for active orderby col 
+					//if (matches[]) {
+
+					//}
+
+				});
+
+			//	alert(typeof(sorts));
+
+
+			//	var expr = new RegExp('(.*)(&cwd_orderby_'+type+'=)([a-zA-z0-9_]+)(.*)');
+			//		var matches = str.match(expr);
+			
+
+				var tmp = sorts.find(function (obj) { 
+					//var expr = new RegExp('(.*)(&cwd_orderby_'+type+'=)([a-zA-z0-9_]+)(.*)');
+					//return obj.href == map_id; 
+					return obj.href == 'a';//.href == '(.*)(&cwd_orderby_'+type+'=)(tilt)(.*)';
+				});
+
+			//	alert('TMP: ');
+			//	alert(tmp);
+				console.log('TMP:');
+				console.log(tmp);
+
+
+				//sorts = sorts.attr('href');
+				//console.log(sorts);
+				//console.log(sorts.hasClass('sortable'));
+				//sorts = sorts.filter(contains(class=""))
+
+				return true;
+			}// End of cwd_match()
+			// !!! END CWD MATCH !!!
+			*/
+
+			cwd_match('map', base);
+			cwd_match('group', base);
+
+			//console.log($('a[class="next-page"]') );
+
+			/*alert('Match: '+JSON.stringify(cwd_match('map', base)));
+
+
+			 var nexts = $('a[class="next-page"]');
+			 var prevs = $('a[class="prev-page"]');
+			 console.log('Nexts');
+			 console.log(nexts);
+			 alert(typeof(nexts));
+			 */
+			// var hrefs = $.each(nexts, function (key, val) { this[key] = val+ '!!!abc!!!'; });
+		//	 $.each(nexts, function (key, val) { nexts[key].href = nexts[key].href.replace(/\&paged=[0-9]+/, '') ; /*console.log(nexts[key]);*/ });
+		//	 $.each(nexts, function (key, val) { nexts[key].href = nexts[key].href.replace(/\&cwd_paged=[0-9]+/, '' ) ; /*console.log(nexts[key]);*/ });
+		//	 $.each(nexts, function (key, val) { nexts[key].href = nexts[key].href += '&cwd_paged='+(nextPage) ; /*console.log(nexts[key]);*/ });
+			// $.each(nexts, function (key, val) { nexts[key].href = nexts[key].href.replace('&paged=', '&cwd_paged=') ; /*console.log(nexts[key]);*/ });
+			// $.each(nexts, function (key, val) { nexts[key].href = nexts[key].href.replace('&paged=', '&cwd_paged=') ; /*console.log(nexts[key]);*/ });
+
+		//	 $.each(prevs, function (key, val) { prevs[key].href = prevs[key].href.replace(/\&paged=[0-9]+/, '') ; /*console.log(nexts[key]);*/ });
+		//	 $.each(prevs, function (key, val) { prevs[key].href = prevs[key].href.replace(/\&cwd_paged=[0-9]+/, '' ) ; /*console.log(nexts[key]);*/ });
+		//	 $.each(prevs, function (key, val) { prevs[key].href = prevs[key].href += '&cwd_paged='+(prevPage) ; /*console.log(nexts[key]);*/ });
+
+			// $.each(prevs, function (key, val) { prevs[key].href = prevs[key].href.replace('&paged=', '&cwd_paged=') ; /*console.log(nexts[key]);*/ });
+			 //alert( JSON.stringify( hrefs ) );
+			 //console.log('Hrefs');
+			 //console.log(hrefs);
+
+			/*var expr = /(.*)(&paged=)([0-9]+)(.*)/;
+			alert(matches[2]);
+			var matches = matches[2].match(expr);
+			alert(matches);
+			var new_next = matches[0];
+			alert(new_next);
+			alert(matches[2]);
+			new_next = new_next.replace(matches[2], '&cwd_paged=');
+			alert(new_next);
+			nexts.attr('href', new_next);*/
+
+			 //alert(matches.length + JSON.stringify(matches) );
+			 //if (matches.length >)
+			 //var expr = 
+
+			/*
+			 * Save Map Selection for Session to Edit on Marker's Page
+			 */
+			$(".cwd-edit-action-map-settings-form").click( function(event) {
+				var thisLink = $(this);
+				var map_id = thisLink.attr('data-map_id');
+				var map_data = JSON.parse(cwd_map_data);
+				var selectedMap = map_data.find(function (obj) { return obj.id == map_id; } );
+
+				var post_data = "map_selected="+map_id+"&action=cwd_request&param=marker_select_map";
+				$.post(cwd_ajax_url, post_data, function(response){
+					window.location.reload(true);
+				})
+			})
+
+			/*
+			 * Save Group Selection for Session to Edit on Marker's Page
+			 */
+			$(".cwd-edit-action-group-settings-form").click( function(event) {
+
+				var thisLink = $(this);
+				var groupNum = thisLink.attr('data-group_number');
+				var groupName = thisLink.attr('data-group_name');
+				
+				var post_data = "group_selected="+groupNum+"&action=cwd_request&param=marker_select_group";
+				$.post(cwd_ajax_url, post_data, function(response){
+					window.location.reload(true);
+				}) 
+			})
+
+
+
+
+			/* 
+			 * Update Marker button - calls on button click by including cwd-form-button in button tag 
+			 * NOTE: avoids page refresh of wordpress defined submit_button();
+			 */
+			$("#cwd-form-button").click(function(){
+			 	var post_data = $("#cwd-form-id").serialize()+"&action=cwd_request&param=update_marker";
+			 	$.post(cwd_ajax_url, post_data, function(response){
+			 		alert(response);
+			 	})
+			})
+
+			/*
+			 * Make Update Location Button for Add Marker Form
+			 */
+		 	var buttonWrap = $('<div>')
+		 	var latLngButton = $('<button>').attr('id', 'cwd-update-location').attr('type', 'button').css('float', 'right').addClass('button button-primary').html('Update Location');
+		 	var lngInput = $('input[name="longitude"]');
+		 	var latLngWrap = lngInput.parent();
+		 	buttonWrap.append(latLngButton)
+		 	latLngWrap.append(buttonWrap);
+
+
+
+
+		}//End if page is map
+	});//End jQuery function 
 
 
 	/*
@@ -275,7 +1183,13 @@
 	 */
 	$(function () {
 		// PHP table data sent from wp_localize_scripts function in class-cwd-dynamic-maps-admin.php 
-		markers = JSON.parse(cwd_php_vars);
+		if (typeof cwd_php_vars !== 'undefined') {
+			markers = JSON.parse(cwd_php_vars);
+		}
+		else {
+			markers = [];
+		}
+		
 	});
 
 
@@ -800,7 +1714,7 @@
 			//console.log($(this));
 			//console.log(markerCluster);
 			//console.log(markerCluster.markers_)
-			console.log(a);
+			//console.log(a);
 	
 			//var selectedMarker = markerCluster.markers_.find(function (obj) { return obj.cwd_id == a.text(); });
 			var selectedMarker = markerCluster.getMarkers().find(function (obj) { return obj.cwd_id == a.text(); } )
@@ -808,9 +1722,9 @@
 			function selectMarker() {
 				// check if marker is in a cluster
 			
-				console.log('*** Selected Marker ***');
-				console.log(selectedMarker);
-				console.log(selectedMarker.isAdded);
+				//console.log('*** Selected Marker ***');
+				//console.log(selectedMarker);
+				//console.log(selectedMarker.isAdded);
 
 				// if marker hasn't been processed by cluster b/c so out of frame, jump there and refresh 
 				if(selectedMarker.isAdded == false) {
@@ -831,12 +1745,12 @@
 					map.setCenter(selectedMarker.getPosition());
 					*/
 					
-					console.log('*** Get Cluster *** ');
+					//console.log('*** Get Cluster *** ');
 
 					var thisCluster = markerCluster.getMarkersCluster(selectedMarker);
-					console.log(thisCluster);
+					//console.log(thisCluster);
 
-					console.log('2nd in Clusters Markers');
+					//console.log('2nd in Clusters Markers');
 
 					var selectedMarkerData = markers.find(function (obj) { return obj.id == selectedMarker.cwd_id } );
 					fillForm(selectedMarkerData);
@@ -865,21 +1779,57 @@
 	 * Fill Form from Table/Map Selection
 	 */
 	fillForm = (function(marker) {
-		$('#cwd-form-id').trigger('reset');
-		console.log(marker);
+		
+		var thisForm = $('#cwd-form-id')
+		thisForm.trigger('reset');
+
+		// Reset hidden image input and image src 
+		var hiddens = thisForm.find('input[id="process_custom_images"]');
+		var imgs = thisForm.find('img[id="cwd-img-upload"]');
+		imgs.attr('src', cwd_plugins_url + '/cwd-dynamic-maps/public/img/camera-icon.svg');
+		hiddens.val('');
+
+		//console.log(marker);
 		$('#cwd-form-id input[name="id"]').val('');
 		if (marker.hasOwnProperty('id')) { 
 			$('#update-marker-form-label').html('Edit Marker-' +marker.id);
+			// Delete Markers
+			$('#cwd-delete-marker-wrap').html('<button id="cwd-delete-marker" type="button" class="button button-secondary cwd-right">Delete Marker</button>');
+			
+			$('#cwd-delete-marker').click(function () {
+				var delId = $("#cwd-form-id").find('div[class="cwd-hidden"] input[name="id"]').val();
+				var post_data = "&action=cwd_request&param=delete_marker&marker_id="+delId;
+				var check = confirm("Are you sure you want to delete marker: "+delId);
+
+				if (check) {
+				 	$.post(cwd_ajax_url, post_data, function(response){
+				 		alert(response);
+				 	});
+			 	}
+			 	else {
+			 		alert('Deletion was aborted.');
+			 	}
+			});
 		}
 		else {
 			$('#update-marker-form-label').html('Add Marker');
+			$('#cwd-delete-marker-wrap').html('');
 		}
-		//alert('RESET');
-		console.log('*** Fill Form ***')
-		console.log(marker);
+
 		for (var property in marker) {
 		    if (marker.hasOwnProperty(property)) {
-		    	$("[name='"+property+"']").val(marker[property]);
+		    	var input = $("[name='"+property+"']");
+		    	input.val(marker[property]);
+		    	if ( input[0].id == 'process_custom_images') {
+		    		if (marker[property] === '') {
+		    			input.prev().attr('src', cwd_plugins_url + '/cwd-dynamic-maps/public/img/camera-icon.svg');
+		    		}
+		    		else {
+		    			//input.prev().attr('src', marker[property]);
+		    			input.prev().attr('src', cwd_base_url+marker[property]);
+
+		    		}
+		    	}
 		    }
 		}
 	});
@@ -941,10 +1891,49 @@
 	 * Set Up the Map
 	 */
 	function initMap() {
+		var allMaps = JSON.parse(cwd_map_data);
+		//console.log(allMaps);
+		//console.log(marker_selected_map_id);
+		var map_options = allMaps.find(function (obj) { return obj.id == marker_selected_map_id } );
+
+		//var map_options = JSON.parse(cwd_map_options);
+		var centerLat = parseFloat(map_options['centerLat']);
+		var centerLng = parseFloat(map_options['centerLng']);
+
+
+		var southBound = parseFloat(map_options['southBound']);
+		var westBound = parseFloat(map_options['westBound']);
+		var northBound = parseFloat(map_options['northBound']);
+		var eastBound = parseFloat(map_options['eastBound']);
+
 		var options = {
+
+				zoom: parseInt(map_options['zoom']),
+				//minZoom: parseInt(map_options[0]['minZoom']),
+				//maxZoom: parseInt(map_options[0]['maxZoom']),
+				center: { lat: centerLat, lng: centerLng },
+				mapTypeId: map_options['mapTypeId'],
+				tilt: parseInt(map_options['tilt']),
+				heading: parseInt(map_options['heading']),
+				/*restriction: {
+		        	latLngBounds: { north: northBound,
+        							south: southBound,
+        							west: westBound,
+        							east: eastBound,
+        			},
+		        	strictBounds: false,
+		        },*/
+
+ 
+		}
+
+
+
+		/*var options = {
+				
 				zoom:18,
 				center:{lat:42.306492,lng:-71.530936} 
-		}
+		}*/
 
 		map = new google.maps.Map(document.getElementById('map-wrap'), options); 
 
@@ -977,7 +1966,7 @@
 		for(var i = 0;i < markers.length;i++){
 			// Add marker
 			addMarker(markers[i]);
-			console.log(markers[i]);
+			//console.log(markers[i]);
 		}
 
 		
@@ -1022,8 +2011,8 @@
 					openInfoWindow = infoWindow;
 
 					var thisMarkerData = markers.find(function (obj) { return obj.id == marker.cwd_id; } )
-					console.log('*** The Marker ***');
-					console.log(thisMarkerData);
+					//console.log('*** The Marker ***');
+					//console.log(thisMarkerData);
 					fillForm(thisMarkerData);
 
 					// As we fill the form with the newly seleted marker must remove the temporary user marker to not confuse the user
@@ -1047,7 +2036,7 @@
 						};
 		markerCluster = new MarkerClusterer(map, cluster, mcOptions);
 
-		console.log( markerCluster.getMarkers() );
+		//console.log( markerCluster.getMarkers() );
 
 
 		/*
@@ -1058,9 +2047,9 @@
     	google.maps.event.addListener(markerCluster, 'clusterclick', function(cluster, event) {
     		//console.log(cluster.getMarkers()[0]);
 
-    		console.log('*** EVENT TYPE ***');
-    		console.log(typeof(event));
-    		console.log(event);
+    		//console.log('*** EVENT TYPE ***');
+    		//console.log(typeof(event));
+    		//console.log(event);
     		/*
     		 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     		 * STOPS THE MAP CLICK EVENT FROM FIRING WHEN CLUSTERCLICK FIRES 
@@ -1073,12 +2062,12 @@
     			event.stopPropagation(); // *** REMOVE FOR MAPS W/OUT ADD MARKER FEATURE ***
     		}
     		
-    		console.log('*** CLUSTER EVENT ***');
-    		console.log(event);
-    		console.log(cluster);
+    		//console.log('*** CLUSTER EVENT ***');
+    		//console.log(event);
+    		//console.log(cluster);
 
-    		console.log('Its Markers');
-    		console.log(cluster.getMarkers()[0]);
+    		//console.log('Its Markers');
+    		//console.log(cluster.getMarkers()[0]);
 
     		if(openInfoWindow) {
 				openInfoWindow.close();
@@ -1119,7 +2108,7 @@
 
 			//var tmp = Object.entries(event);
 
-			console.log(Object.entries(event));
+			//console.log(Object.entries(event));
 
 			//check if click is a cluster click
 			var tmp = '';
@@ -1150,8 +2139,8 @@
 			}
 			
 			
-			console.log('*** EVENT ***');
-			console.log(event);
+			//console.log('*** EVENT ***');
+			//console.log(event);
 
 			//console.log(event.ta.explicitOriginalTarget.className);
 			//console.log(event.ta.explicitOriginalTarget.parentNode.className);
@@ -1266,7 +2255,9 @@
 	} 
 	else {
 	     $.getScript('https://maps.googleapis.com/maps/api/js?key='+cwd_api_key+'&language=en', function(){
-	         $(initMap);
+	         if( typeof marker_selected_map_id !== 'undefined' && document.getElementById('map-wrap') !== null ) {
+	         	$(initMap);
+	         }
 	     });
 	}
 	// Enqueued markercluster.js 
