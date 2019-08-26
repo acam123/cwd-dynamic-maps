@@ -30,55 +30,39 @@
 	 */
 
 
-	console.log('Start');
-	console.log(cwd_static);
-	var shortcodes = $('.cwd-frontend-box');
-	console.log(shortcodes);
-	for (var i=0; i<shortcodes.length; i++) {
-		shortcodes[i].append('SHORTCODE: '+i);
-	}
+$.getScript('https://maps.googleapis.com/maps/api/js?key='+cwd_api_key+'&language=en', (function(){
+
+	var tableMeta = {};
 
 
-
-for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
-
-
+for (var itr=0; itr<cwd_static.length; itr++) {
 
 	var map, markers, markerCluster, selectMarker, openInfoWindow, declusteredMarker;
 
-	alert(itr);
-	console.log('STATIC');
-	console.log(cwd_static[itr]);
+	var thisShortcodeBox = $('#'+cwd_static[itr]['uid']);
 
-	function initMarkers() {
-		// PHP table data sent from wp_localize_scripts function in class-cwd-dynamic-maps-admin.php 
-		markers2 = JSON.parse(cwd_php_vars);
+	var tmp = 'TMP';
 
-		markers = JSON.parse(cwd_static[itr]['markers_data']);
+	// PHP table data sent from wp_localize_scripts function in class-cwd-dynamic-maps-admin.php 
+	markers = JSON.parse(cwd_static[itr]['markers_data']);
 
-		console.log('Markers');
-		console.log(markers);
-		console.log(markers2);
 
-	}
-	initMarkers();
+
 
 	/*
 	 * Make Pagination for Table
 	 */
-	function initPaginationTable() {
 
-		if (markers.length <= 0) {
-			$('.cwd-table-wrap').remove();
-			$('.cwd-map-wrap-frontend').css('width', '100%');
-			return -2;
+		if (markers.length == 0) {
+			thisShortcodeBox.find('.cwd-table-wrap').remove();
+			thisShortcodeBox.find('.cwd-map-wrap-frontend').css('width', '100%');
 		}
 
 	 	var numRows = markers.length;
 	 	var maxPerPage = 2;
 	 	var totalPages = Math.ceil(numRows/maxPerPage);
 
-	 	var wrap = $('.cwd-table-wrap');
+	 	var wrap = thisShortcodeBox.find('.cwd-table-wrap');
 
 
 	 	var form = $('<form>');
@@ -104,8 +88,6 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 	 	var lastSpan = $('<span>').html('&raquo;'); 
 	 	var toNextPage = $('<a>').addClass('tablenav-pages-navspan cwd-next');
 	 	var nextSpan = $('<span>').html('&rsaquo;');
-
-	 	//var tableNavBottom = $('<div>').addClass('tablenav bottom');
 
 
 	 		toFirstPage.append(firstSpan);
@@ -133,18 +115,10 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 	 	tableNavTop.append(navPages);
 	 	wrap.append(tableNavTop); 	
 		
-	}
-	initPaginationTable();
 
 	/*
 	 * Fill Javascript Table 
 	 */
-	 function initFillTable() {
-	 	if (markers.length <= 0) {
-	 		return -2;
-	 	}
-
-	 	var wrap = $('.cwd-table-wrap');
 
 	 	var tableWrapper = $('<div>').attr('class', 'cwd-table-wrapper'); 
 	 	var table = $('<table>').addClass('widefat striped marker-sorter');
@@ -161,8 +135,7 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 		// Remove longitude and latitude columns from table
 		colNames.splice(colNames.indexOf('latitude'),1);
 		colNames.splice(colNames.indexOf('longitude'),1);
-		//colNames.splice(colNames.indexOf('Burial_Site_Number'),1);
-		//numCols = numCols - 3;
+	
 		numCols = numCols - 2;
 
 		//Fill tHead & tFoot
@@ -202,13 +175,8 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 	 			var colName = colNames[j];
  				td = $('<td>').attr('data-cwd-col', colName);
 
- 				/*var linkWrap = $('<a>').addClass('cwd-link-marker').text(markers[i][colName]);
- 				td.append(linkWrap);
- 				*/
-
  				//make link to marker on map
  				if (j == 0) {
- 					//td.html('<a>'+markers[i][colName]+'</a>');
  					var linkWrap = $('<a>').addClass('cwd-link-marker').text(markers[i][colName]);
  					td.append(linkWrap);
  				}
@@ -219,7 +187,6 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 	 			row.append(td);
 
 	 		}
-	 		//table.append(row);
 	 		table.prepend(row);
 	 	}
 	 	table.append(tFoot);
@@ -228,106 +195,108 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 	 	wrap.append(tableWrapper);
 
 
-	 	var howTo = $("<div>").text("This is how you use the plugin..." /*+ map_options[0] + '----------------------------' + jQuery.type(map_options[0])*/ ).attr("id", "howTo");
+	 	var howTo = $("<div>").html("<p>- Search for markers by any keyword above and click the desired marker link to view the marker and it's information on the map. <i>(Leave input blank and click <b>Search</b> to see all markers).</i></p><p style='text-align:center;'><b><i>OR</i></b></p><p>- Start exploring the map by dragging, clicking navigation buttons, and selecting markers and marker clusters to find out more.</p>").attr("id", "howTo");
 	 	wrap.append(howTo);
 
-	 	$(".tablenav-pages").hide();
-	 	$(".marker-sorter").hide();
+	 	thisShortcodeBox.find(".tablenav-pages").hide();
+	 	thisShortcodeBox.find(".marker-sorter").hide();
 
-	 }
-	 initFillTable();
 
 	 /*
 	 * Table Actions
 	 */
-	function initTableActions() {
-
-		if (markers.length <= 0) {
-			return -2;
-		}
-		/*var currPage = 1; 
-		var maxPerPage = 3;
-		var rows = $('div.cwd-table-wrap table tbody tr');
-		var matchedRows = rows;
-		var numRows = matchedRows.length;
-		var totalPages = Math.ceil(numRows/maxPerPage);
-		
-		
-
-		//console.log('ROWS: ')
-		//console.log(rows);
-
-		// Make Stats Div
-		var statsDiv = $('<div>');
-		var markerDiv = $('#cwd-markers-div');
-		statsDiv.attr('id', 'stats-div');
-		markerDiv.prepend(statsDiv);
-		var input = $('input[id="current-page-selector"]');
-		var maxPageText = $('span[class="total-pages"]');
-		var displayNum = $('span[class="displaying-num"]');
-
-		*/
 
 		var addPageButtons;
 
-		var rows = $('div.cwd-table-wrap table tbody tr');
-		var input = $('input[id="current-page-selector"]');
-		var maxPageText = $('span[class="total-pages"]');
-		var displayNum = $('span[class="displaying-num"]');
+		var rows = thisShortcodeBox.find('div.cwd-table-wrap table tbody tr');
+		var input = thisShortcodeBox.find('input[id="current-page-selector"]');
+		var maxPageText = thisShortcodeBox.find('span[class="total-pages"]');
+		var displayNum = thisShortcodeBox.find('span[class="displaying-num"]');
 		var maxPerPage = 5;
 		var matchedRows;
 		var numRows;
 		var totalPages;
 		var currPage;
-		
 
+
+		var declusteredMarker;
+		var openInfoWindow;
+		var cluster;
+
+		var markerColTypes = JSON.parse(cwd_static[itr]['marker_col_types']);
+
+		tableMeta[thisShortcodeBox.attr('id')] = { 
+			rows:rows, 
+			input:input, 
+			maxPageText:maxPageText, 
+			displayNum:displayNum, 
+			maxPerPage:maxPerPage, 
+			matchedRows, 
+			numRows, 
+			totalPages, 
+			currPage,
+			markerCluster, 
+			map, 
+			markers,
+			declusteredMarker:null,
+			openInfoWindow:null,
+			markerColTypes:markerColTypes,
+			cluster
+
+		};
+		
 
 		/*
 	 	* Pagination Functions
 	 	*/
-	 	function paginate() {
-
+	 	function paginate(thisShortcodeBox) {
 
 	 		//Remove noResultsRow if exists
 	 		var noResultsTr;
-			var tbody = $(".marker-sorter tbody");
+			var tbody = thisShortcodeBox.find(".marker-sorter tbody");
 			noResultsTr = tbody.find("#no-results-row");
 			if ( noResultsTr ) {
 				noResultsTr.remove();
 			}
 
 			
-			rows.hide();
-			matchedRows = rows.filter('.cwd-match');
-			numRows = matchedRows.length;
-			totalPages = Math.ceil(numRows/maxPerPage);
-			currPage = 1;
-			if (totalPages == 0) {
-				currPage = 0;
+			var id = thisShortcodeBox.attr('id');
+
+			tableMeta[id]['rows'].hide();
+
+			tableMeta[id]['matchedRows'] = tableMeta[id]['rows'].filter('.cwd-match');
+
+			tableMeta[id]['numRows'] = tableMeta[id]['matchedRows'].length;
+
+			tableMeta[id]['totalPages'] = Math.ceil(tableMeta[id]['numRows'] / tableMeta[id]['maxPerPage']);
+
+			tableMeta[id]['currPage'] = 1;
+
+
+			if (tableMeta[id]['totalPages'] == 0) {
+				tableMeta[id]['currPage'] = 0;
 			}
-			var bound = Math.min(maxPerPage, numRows)
+
+			var bound = Math.min(tableMeta[id]['maxPerPage'], tableMeta[id]['numRows']);
 		
 			updatePageStats();
 
-
-			/*console.log('MATCHED: ')
-			console.log(matchedRows);
-			*/
-
-
 			
 			addPageButtons = (function() {
-				$('.cwd-next').click(function(event) {
-					if(currPage < totalPages) {
-						currPage++;
+
+				var id = thisShortcodeBox.attr('id');
+
+				thisShortcodeBox.find('.cwd-next').click(function(event) {
+					if(tableMeta[id]['currPage'] < tableMeta[id]['totalPages']) {
+						tableMeta[id]['currPage']++;
 						updatePageStats();
 					}
 
 				});
 
-				$('.cwd-back').click(function(event) {
-					if(currPage > 1) {
-						currPage--;
+				thisShortcodeBox.find('.cwd-back').click(function(event) {
+					if(tableMeta[id]['currPage'] > 1) {
+						tableMeta[id]['currPage']--;
 						updatePageStats();
 					}
 					
@@ -336,8 +305,8 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 				input.on("keyup", function(event) {
 					var newPage = $(this).val();
 					//Check if newPage is an int
-					if ( (Math.floor(newPage) == newPage) && (newPage > 0) && (newPage <= totalPages) )  {
-							currPage = newPage;
+					if ( (Math.floor(newPage) == newPage) && (newPage > 0) && (newPage <= tableMeta[id]['totalPages']) )  {
+							tableMeta[id]['currPage'] = newPage;
 							updatePageStats();
 					}
 					//Allow user to remove Current Page #
@@ -345,28 +314,27 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 
 					}
 					else {
-						//$(this).val(currPage);
 					}
 					
 				})
 
 				input.on("focusout", function(event) {
 					var newPage = $(this).val();
-					if ( (newPage == '') | (newPage <= 0) | (newPage > totalPages) | (Math.floor(newPage) != newPage) ) {
-						$(this).val(currPage);
+					if ( (newPage == '') | (newPage <= 0) | (newPage > tableMeta[id]['totalPages']) | (Math.floor(newPage) != newPage) ) {
+						$(this).val(tableMeta[id]['currPage']);
 					} 
 				})
 
-				$('.cwd-first').click(function(event) {
-					if(currPage != 1) {
-						currPage = 1;
+				thisShortcodeBox.find('.cwd-first').click(function(event) {
+					if(tableMeta[id]['currPage'] != 1) {
+						tableMeta[id]['currPage'] = 1;
 						updatePageStats();
 					}
 				});
 
-				$('.cwd-last').click(function(event) {
-					if(currPage != totalPages) {
-						currPage = totalPages;
+				thisShortcodeBox.find('.cwd-last').click(function(event) {
+					if(tableMeta[id]['currPage'] != tableMeta[id]['totalPages']) {
+						tableMeta[id]['currPage'] = tableMeta[id]['totalPages'];
 						updatePageStats();
 					}
 
@@ -376,17 +344,19 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 						
 
 			function updatePageStats() {
-				rows.hide();
-				for (var i=0; i<maxPerPage; i++) {
-					$(matchedRows[(currPage*maxPerPage - maxPerPage + i)]).show()
-					if ( (currPage*maxPerPage - maxPerPage + i ) >= numRows ){
+
+				tableMeta[id]['rows'].hide();
+				for (var i=0; i<tableMeta[id]['maxPerPage']; i++) {
+					$(tableMeta[id]['matchedRows'][(tableMeta[id]['currPage']*tableMeta[id]['maxPerPage'] - tableMeta[id]['maxPerPage'] + i)]).show();
+		
+					if ( (tableMeta[id]['currPage']*tableMeta[id]['maxPerPage'] - tableMeta[id]['maxPerPage'] + i ) >= tableMeta[id]['numRows'] ){
 						break;
 					}
 				}
 
-				input.val(currPage);
-				maxPageText.html(totalPages);
-				displayNum.html(numRows+' item(s)');
+				tableMeta[id]['input'].val(tableMeta[id]['currPage']);
+				tableMeta[id]['maxPageText'].html(tableMeta[id]['totalPages']);
+				tableMeta[id]['displayNum'].html(tableMeta[id]['numRows']+' item(s)');
 
 				/*statsDiv.html(
 					'<p>Page: ' + currPage + 
@@ -400,7 +370,7 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 			};
 
 			// add noResultsRow if 0 results
-			if ( numRows === 0 ) {
+			if ( tableMeta[id]['numRows'] === 0 ) {
 				noResultsTr = $("<tr>").attr("id", "no-results-row");
 				var noResultsTd = $("<td>").text('No Results Found').attr("colspan", "100");
 				noResultsTr.append(noResultsTd);				
@@ -409,43 +379,41 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 
 		}//End Paginate
 
-		paginate();
+		paginate(thisShortcodeBox);
 		addPageButtons();		
 
 		/*
 		 * Filter Markers
 		 */
-		$("#cwd-marker-filter-button").click( function(event){
+		thisShortcodeBox.find("#cwd-marker-filter-button").click( function(event){
 
-			$("#howTo").hide();
+			var thisShortcodeBox = $(this).parent().parent().parent().parent().parent();
 
-			$(".marker-sorter").show();
-			$(".tablenav-pages").show();
+			thisShortcodeBox.find("#howTo").hide();
 
-			var filter = $("input[name='cwd-marker-filter']").val().toLowerCase();
+			thisShortcodeBox.find(".marker-sorter").show();
+			thisShortcodeBox.find(".tablenav-pages").show();
+
+			var filter = thisShortcodeBox.find("input[name='cwd-marker-filter']").val().toLowerCase();
 		//	$(".marker-sorter tbody tr").filter(function() {
 		//		$(this).toggle($(this).text().toLowerCase().indexOf(filter) > -1)
 		//	})
 			
 
-			$(".marker-sorter tbody tr").each( function() {
+			thisShortcodeBox.find(".marker-sorter tbody tr").each( function() {
 				
 				if( $(this).text().toLowerCase().indexOf(filter) > -1) {
-					//Match
-					//$(this).show();
+
 					$(this).addClass('cwd-match').removeClass('cwd-no-match');
 
 				}
 				else {
-					//$(this).hide();
 					$(this).addClass('cwd-no-match').removeClass('cwd-match');
 				}
 
 			})
 
-
-			paginate();
-
+			paginate(thisShortcodeBox);
 			
 		});
 		
@@ -453,16 +421,19 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 		/*
 		 * Sort Javascript Table
 		 */
-		$(".cwd-sortable-col").click(function(event) {
+		thisShortcodeBox.find(".cwd-sortable-col").click(function(event) {
 			var th = $(this);
+
 			var colName = th.data('cwd-col');
 			var table = th.parent().parent().parent();
 			var tableBody = table.find("tbody");
 			var tableRows = tableBody.children("tr");
 			var ths = table.find("th[data-cwd-col="+colName+"]");
+			var indicator = ths.find("span[class='sorting-indicator']");
 			var siblings = table.find("th[data-cwd-col!="+colName+"]");
 			var isReverse = 1;
 			var desc = th.hasClass('desc');
+			
 			if (desc) {
 				ths.removeClass('desc').addClass('asc');
 			}
@@ -500,105 +471,119 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 			siblings.removeClass('sorted asc').addClass('sortable desc');
 
 
-			paginate();
-		}) //End of Pagination Functions 
-
-	} //End of Table Actions
+			paginate(thisShortcodeBox);
+		}) //End of Pagination Functions
 
 
 
 	/*
 	 * Give Table Entry Links Actions on the Map
 	 */
+		thisShortcodeBox.find(".cwd-link-marker").click( function(event) {
 
-	 function initTableEntryLinks() {
-
-	 	if (markers.length <= 0) {
-	 		return -2;
-	 	}
-
-
-		$(".cwd-link-marker").click( function(event) {
 			var a = $(this);
 			var sibs = a.parent().siblings();
-			//console.log(sibs);
-			//console.log($(this));
-			//console.log(markerCluster);
-			//console.log(markerCluster.markers_)
-			//console.log(a);
-	
-			//var selectedMarker = markerCluster.markers_.find(function (obj) { return obj.cwd_id == a.text(); });
-			var selectedMarker = markerCluster.getMarkers().find(function (obj) { return obj.cwd_id == a.text(); } )
+
+			var thisShortcodeBox = $(this).parent().parent().parent().parent().parent().parent().parent();
+			var id = thisShortcodeBox.attr('id');
+
+
+			var tmp = $.find("div[data-cwd-reattach="+id+"]");
+			if ( tmp.length === 1 ) {
+				// Reattach fullscreen infowindow to google defined infowindow 
+				var tmpWindow = $.find("button[data-cwd-uid="+id+"]");
+				tmpWindow = $(tmpWindow[0]); 
+
+				tmpWindow.css('width', 'auto');
+				tmpWindow.css('height', 'auto');
+				tmpWindow.css('position', 'absolute');
+				tmpWindow.css('background', 'transparent');
+				tmpWindow.css('color', 'black');
+				tmpWindow.css('opacity', '.65');
+				tmpWindow.css('padding', '0px');
+				tmpWindow.css('top', '-2px');
+				tmpWindow.css('left', '0px');
+
+				tmpWindow.removeClass('cwd-info-full');
+
+				tmpWindow.parent().css('position', 'static');
+				tmpWindow.parent().css('padding', '0px');
+				tmpWindow.parent().css('border', 'none');
+
+				tmp = $(tmp[0]);
+				tmp.prepend(tmpWindow.parent());
+			}
+
+			// Close Open Infowindows
+			if (tableMeta[id]['openInfoWindow']) {
+				tableMeta[id]['openInfoWindow'].close();
+			}
+
+			// Reset Declustered Marker
+			if (tableMeta[id]['declusteredMarker'] != null /*|| 'undefined'*/) {
+				tableMeta[id]['declusteredMarker'].setMap(null);
+				tableMeta[id]['markerCluster'].addMarker(tableMeta[id]['declusteredMarker']);
+				tableMeta[id]['declusteredMarker'] = null;
+				tableMeta[id]['markerCluster'].redraw();
+			}
+			
+
+			var selectedMarker = tableMeta[id]['markerCluster'].getMarkers().find(function (obj) { return obj.cwd_id == a.text(); } )
+
+			//console.log('!!!Marker Cluster!!!');
+			//console.log(tableMeta[id]['markerCluster']);
 
 			function selectMarker() {
-				// check if marker is in a cluster
-			
-				//console.log('*** Selected Marker ***');
-				//console.log(selectedMarker);
-				//console.log(selectedMarker.isAdded);
-
+				// Check if marker is in a cluster
 				// if marker hasn't been processed by cluster b/c so out of frame, jump there and refresh 
 				if(selectedMarker.isAdded == false) {
-					map.setCenter(selectedMarker.getPosition());
-					//markerCluster.redraw();
-					//markerCluster.resetViewport();
-					markerCluster.repaint();
+
+					tableMeta[id]['map'].setCenter(selectedMarker.getPosition());
+					tableMeta[id]['markerCluster'].repaint();
 				}
 
 				var onMap = selectedMarker.map;
 				if (onMap != null) {
 					new google.maps.event.trigger(selectedMarker, 'click');
-					map.setCenter(selectedMarker.getPosition());
+					tableMeta[id]['map'].setCenter(selectedMarker.getPosition());
 				} 
 				else {
-					/*
-					map.setZoom(map.getZoom() + 1);
-					map.setCenter(selectedMarker.getPosition());
-					*/
-					
-					//console.log('*** Get Cluster *** ');
 
-					var thisCluster = markerCluster.getMarkersCluster(selectedMarker);
-					//console.log(thisCluster);
+					var thisCluster = tableMeta[id]['markerCluster'].getMarkersCluster(selectedMarker);
 
-					//console.log('2nd in Clusters Markers');
+					var selectedMarkerData = tableMeta[id]['markers'].find(function (obj) { return obj.id == selectedMarker.cwd_id } );
 
-					var selectedMarkerData = markers.find(function (obj) { return obj.id == selectedMarker.cwd_id } );
-					//fillForm(selectedMarkerData);
+					//google.maps.event.trigger(tableMeta[id]['markerCluster'], 'clusterclick', thisCluster);
 
-					/*if (userMarker !=null) {
-						userMarker.setMap(null);
-						userMarker = null;
-					}*/
 
-					//Click this marker's CLuster
-					google.maps.event.trigger(markerCluster, 'clusterclick', thisCluster);
+				// !!! START REPLACE !!!
+					//Decluster Marker 
+					// ??? ADD TO Click instead ???
+					tableMeta[id]['declusteredMarker'] = selectedMarker;
+					tableMeta[id]['markerCluster'].removeMarker(selectedMarker);
+    				tableMeta[id]['markerCluster'].redraw();
+					tableMeta[id]['declusteredMarker'].setMap(tableMeta[id]['map']);
+	
+					new google.maps.event.trigger(tableMeta[id]['declusteredMarker'], 'click');
+			
+					tableMeta[id]['map'].setCenter(selectedMarker.getPosition());
+				// !!! END REPLACE !!!
 				}
 	
 			};
 
 			selectMarker();
-			
-			/*fillForm(selectedMarkerData);
-			userMarker.setMap(null);
-			userMarker = null;*/
 			 
 		})
-	}
+
+
 	 	
 
-	function initMap() {
-		/*if ( typeof(cwd_map_shortcode_id) == "undefined" || cwd_map_shortcode_id === null || cwd_map_shortcode_id === '') {
-			return -1;
-		}*/
-		var short_id = cwd_map_shortcode_id['map'];
-		console.log('HELLO!!!');
-		//var short_id = cwd_static['atts']['map'];
-		console.log('*******ID*****');
-		console.log(short_id);
+	function initMap(itr, id) {
+		var short_id = cwd_static[itr]['atts']['map'];
+		var m_group_num = cwd_static[itr]['atts']['markers']; 
 
-		var map_options = JSON.parse(cwd_map_options);
-		//var map_options = JSON.parse(cwd_static[itr]['maps_data']);
+		var map_options = JSON.parse(cwd_static[itr]['maps_data']);
 
 		var selectedMap = map_options.find(function (obj) { return obj.id == short_id } );
 
@@ -606,6 +591,7 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 			alert('Error: No Map with this Id found');
 			return -1;
 		}
+
 
 		var centerLat = parseFloat(selectedMap['centerLat']);
 		var centerLng = parseFloat(selectedMap['centerLng']);
@@ -641,22 +627,69 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 		        	strictBounds: false,
 		        },
 
- 
 		}
 
-		var mapWrap = $("#"+cwd_uid).find('div[class="cwd-map-wrap-frontend"]')[0];
-		//var mapWrap = $("#"+cwd_static[itr]['uid']).find('div[class="cwd-map-wrap-frontend"]')[0];
-		console.log(mapWrap);
-		console.log(document.getElementsByClassName('cwd-map-wrap-frontend')[0]);
+		var mapWrap = $("#"+cwd_static[itr]['uid']).find('div[class="cwd-map-wrap-frontend"]')[0];
 
-		//mapWrap.css('background', 'green');
+		tableMeta[id]['map'] = new google.maps.Map(mapWrap, options);
 
-		map = new google.maps.Map(mapWrap, options);
+		// Add Custom Button(s)
+		// Create the DIV to hold the control and call the CenterControl()
+        // constructor passing in this DIV.
+        var newControlDiv = document.createElement('div');
+        var newControl = new NewControlButton(newControlDiv, tableMeta[id]['map']);
 
-		//map = new google.maps.Map(document.getElementsById('cwd-map-wrap-frontend'), options); 
+        var myDiv = $('#floating-panel');
 
+        newControlDiv.index = 1;
+        tableMeta[id]['map'].controls[google.maps.ControlPosition.TOP_LEFT].push(newControlDiv);
 
-		
+        function recenterMap() {
+        	tableMeta[id]['map'].setCenter(new google.maps.LatLng(centerLat, centerLng));
+        }
+
+        /*
+		 * Set Up the Buttons for the Map
+		 */
+		function NewControlButton(controlDiv, map) {
+			// Set CSS for the control border.
+			var controlUI = document.createElement('div');
+			controlUI.style.backgroundColor = '#fff';
+			controlUI.style.border = '2px solid #fff';
+			controlUI.style.borderRadius = '2px';
+			controlUI.style.boxShadow = '0 2px 4px rgba(0,0,0,.2)';
+			controlUI.style.boxSizing = 'content-box';
+			controlUI.style.cursor = 'pointer';
+			controlUI.style.marginBottom = '22px';
+			controlUI.style.textAlign = 'center';
+			controlUI.title = 'Click to Center Map';
+
+			controlUI.style.marginTop = '10px';
+			controlUI.style.marginRight = '10px';
+			//controlUI.style.backgroundImage = 'url('+cwd_plugin_url+'/cwd-dynamic-maps/public/img/home_icon.png)';
+			controlUI.style.height = '36px';
+			controlUI.style.width = '36px';
+
+			controlDiv.appendChild(controlUI);
+
+			// Set CSS for the control interior.
+			var controlText = document.createElement('div');
+			//controlText.style.color = 'rgb(25,25,25)';
+			//controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+			//controlText.style.fontSize = '16px';
+			//controlText.style.lineHeight = '37px';
+			//controlText.style.paddingLeft = '3px';
+			//controlText.style.paddingRight = '3px';
+			controlText.innerHTML = '<img  class="cwd-map-home-button" style="height:25px;width:25px;margin-top:5px;" src="'+cwd_plugin_url+'/cwd-dynamic-maps/public/img/home_icon.png" >';
+			controlUI.appendChild(controlText);
+
+			// Setup the click event listeners
+			controlUI.addEventListener('click', function() {
+			  recenterMap();
+			});
+
+		} // End NewControlButton
+
 		
 		if (selectedMap['polyline'] !== '' ) {
 			var polylineCoordinates = JSON.parse( selectedMap['polyline'].replace(/;/g, ',') );	
@@ -667,11 +700,10 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 			    strokeOpacity: 1.0,
 			    strokeWeight: 2
 			});
-			polyline.setMap(map);
+			polyline.setMap(tableMeta[id]['map']);
 		}
 
 
-		
 		// Listen for Map Drags and Limit Range by ReCentering
 		/*
 		var southBound = parseFloat(map_options[0]['southBound']);
@@ -701,14 +733,13 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 	    });
 	    */
 
+		tableMeta[id]['cluster'] = [];
 
-		var cluster = [];
 
 		// Loop through markers
-		for(var i = 0;i < markers.length;i++){
+		for(var i = 0; i<tableMeta[id]['markers'].length;i++){
 			// Add marker
-			addMarker(markers[i]);
-			//console.log(markers[i]);
+			addMarker(tableMeta[id]['markers'][i]);
 		}
 
 
@@ -718,68 +749,112 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 			var coords = {lat:parseFloat(m.latitude), lng:parseFloat(m.longitude)};
 			var marker = new google.maps.Marker({
 				icon: {
-					url: '../wp-content/plugins/cwd-dynamic-maps/admin/img/location-pin-curvy-outline.png',
+					url: cwd_plugin_url+'/cwd-dynamic-maps/public/img/location-pin-curvy-outline.png',
 					scaledSize:  new google.maps.Size(20, 20), // scaled size
 				},
 				position:coords,
 				cwd_id:m.id,
-				cwd_name:m.Name,
-				cwd_No:m.Burial_Site_Number,
-				cwd_Death:m.Death
+				
 			});
-			cluster.push(marker); // AIDAN!!! REINSTATE THIS AFTER ADDING MARKERS TO HAVE CLUSTER 
-			//marker.setMap(map); // REMOVE THIS LINE AND SWAP WITH ABOVE
+			tableMeta[id]['cluster'].push(marker); 
 
-			//console.log(marker['cwd_id']);
-
-		
 			// Check content
-			if (true /*m.description*/){
+			if (true ){
+				var contents = '';
+	
+
+				if ( cwd_infowindow_display === null || typeof(cwd_infowindow_display[m_group_num]) === 'undefined' || cwd_infowindow_display[m_group_num] === '') {			
+					// DEFAULT INFOWINDOW DISPLAY
+					contents = '';
+					for (var prop in m) {
+					    if (m.hasOwnProperty(prop)) {
+					        contents+='<p>'+prop+': '+m[prop]+'</p>';
+					    }
+					}
+				} 
+				else {
+					// PARSE THROUGH TEMPLATE FOR DATAFIELDS TO INSERT
+					contents += cwd_infowindow_display[m_group_num];
+
+					var expr = /(\$cwd-infowindow-)([a-zA-Z0-9_]+)/gm;
+				
+					var matches = contents.match(expr);
+
+					if (matches === null) {matches = 0;}
+
+					var imgCols = tableMeta[id]['markerColTypes'].filter(function (obj) {return obj.COLUMN_COMMENT === 'img'});
+			
+					for (var i=0; i<matches.length; i++) {
+						var x = matches[i].split("$cwd-infowindow-")[1];
+						var isImgType = imgCols.filter(function (obj) {return obj.COLUMN_NAME === x});
+
+						if ( isImgType.length > 0 &&  m[x] === '' ) {
+							//default image
+							contents = contents.replace( matches[i], cwd_plugin_url+'/cwd-dynamic-maps/public/img/camera-icon.png' );
+						}
+						else if( isImgType.length > 0 &&  m[x] !== '' ) {
+							//img relative path
+							contents = contents.replace( matches[i], cwd_base_url +'/'+ m[x] );
+
+						}
+						else if ( typeof(m[x]) === 'undefined' ) {
+							//empty string
+							contents = contents.replace( matches[i],  '' );
+						}
+						else {
+							//database cell
+							contents = contents.replace( matches[i], m[x] );
+						}
+					}
+				}
+		
 				var infoWindow = new google.maps.InfoWindow({
-			    	content:'<h4>'+m.Name+'</h4>'
-			    		+'<p>No. '+m.Burial_Site_Number+'</p>'
-			    		+'<p>Date: '+m.Death+'</p>'
+			    	content: '<div id="cwd-display-topbar-wrap" style="/*padding:5px;*/"><button type="button" data-cwd-uid="'+id+'" id="cwd-display-topbar">&boxbox;</button><div class="cwd-infowindow" style="overflow:scroll;"><div style="height:100%; min-width:100%; width:auto; box-sizing:content-box;">'+contents+'</div></div></div>'
 				});
 
-				//Maybe this should be drawn dynamically  
 				marker.addListener('click', function(event) {
 					//Close open infoWindows is exist
-					if(openInfoWindow) {
-						openInfoWindow.close();
+					if(tableMeta[id]['openInfoWindow']) {
+						tableMeta[id]['openInfoWindow'].close();
 					}
+
 					//Open this infoWindow and save as the openInfoWindow
-					infoWindow.open(map, marker);
+					infoWindow.open(tableMeta[id]['map'], marker);
+
+
+
+
+
+
+					
+
+					
+
+
+
+
 					//Save this infoWindow as the openInfoWindow
-					openInfoWindow = infoWindow;
+					tableMeta[id]['openInfoWindow'] = infoWindow;
 
-					var thisMarkerData = markers.find(function (obj) { return obj.id == marker.cwd_id; } )
-					//console.log('*** The Marker ***');
-					//console.log(thisMarkerData);
-					//fillForm(thisMarkerData);
-
-					// As we fill the form with the newly seleted marker must remove the temporary user marker to not confuse the user
-					/*if (userMarker !=null) {
-						userMarker.setMap(null);
-						userMarker = null;
-						
-					}*/
+					var thisMarkerData = tableMeta[id]['markers'].find(function (obj) { return obj.id == marker.cwd_id; } );
 					
 				});
 
 
 			}
+
 		} // End addMarkers
 
 		var mcOptions = { 
 							zoomOnClick: false,
 							averageCenter: true,
-							imagePath: '../wp-content/plugins/cwd-dynamic-maps/admin/img/m',
+							imagePath: cwd_plugin_url+'/cwd-dynamic-maps/public/img/m',
+							//imagePath: '../wp-content/plugins/cwd-dynamic-maps/public/img/m',
 							gridSize: 40, //
 							maxZoom: 21, //On smallest possible zoom force all markers to be shown
 						};
-		markerCluster = new MarkerClusterer(map, cluster, mcOptions);
 
-		//console.log( markerCluster.getMarkers() );
+		tableMeta[id]['markerCluster'] = new MarkerClusterer(tableMeta[id]['map'], tableMeta[id]['cluster'], mcOptions);
 
 
 		/*
@@ -787,12 +862,9 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
 		 */
 
     	//Listen for clusterclick
-    	google.maps.event.addListener(markerCluster, 'clusterclick', function(cluster, event) {
-    		//console.log(cluster.getMarkers()[0]);
-
-    		//console.log('*** EVENT TYPE ***');
-    		//console.log(typeof(event));
-    		//console.log(event);
+    	google.maps.event.addListener(tableMeta[id]['markerCluster'], 'clusterclick', function(cluster, event) {
+    	
+    
     		/*
     		 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     		 * STOPS THE MAP CLICK EVENT FROM FIRING WHEN CLUSTERCLICK FIRES 
@@ -805,221 +877,233 @@ for (var itr=0; itr<cwd_static.length; itr++) { //NEW for
     			//event.stopPropagation(); // *** REMOVE FOR MAPS W/OUT ADD MARKER FEATURE ***
     		}
     		
-    		//console.log('*** CLUSTER EVENT ***');
-    		//console.log(event);
-    		//console.log(cluster);
 
-    		//console.log('Its Markers');
-    		//console.log(cluster.getMarkers()[0]);
+    		if (tableMeta[id]['openInfoWindow']) {
+				tableMeta[id]['openInfoWindow'].close();
+			}
 
-    		if(openInfoWindow) {
-				openInfoWindow.close();
+
+			if(tableMeta[id]['declusteredMarker'] != null) {
+					
+					tableMeta[id]['declusteredMarker'].setMap(null);
+					tableMeta[id]['markerCluster'].addMarker(tableMeta[id]['declusteredMarker']);
+    				tableMeta[id]['markerCluster'].redraw();
+    				tableMeta[id]['declusteredMarker'] = null;
 			}
 
 			var clustersMarkers = cluster.getMarkers(); 
+
 			var clusterSize = clustersMarkers.length;
 			var cluster_ids = []; 
 			var clustersMarkersData = [];
-			var clusterDescription = '';
-			
-
+			var clusterDescription = '<br>';
+			var cols;
+			var defaultDisplay = true;
+			var customDisplay = '';
+			var linkCode = '';
 
 
 			for (var i=0; i<clusterSize; i++) {
+				var customDisplay = '';
 				cluster_ids.push(clustersMarkers[i].cwd_id);
-				var tmp = markers.find(function (obj) { return obj.id == clustersMarkers[i].cwd_id; });
-				clustersMarkersData.push(tmp);
-				clusterDescription += '<a class="cwd-cluster-link" id="'+tmp.id+'" >'+tmp.Burial_Site_Number +'</a>, '+tmp.Name+ ', ' +tmp.Death+ '<br>';
+				var tmp = tableMeta[id]['markers'].find(function (obj) { return obj.id == clustersMarkers[i].cwd_id; });
 
-				//console.log(tmp);
+				if ( cwd_cluster_display === null || typeof(cwd_cluster_display[m_group_num]) === 'undefined' || cwd_cluster_display[m_group_num] === '') {		
+					customDisplay = '- '+tmp.id +' -';
+				}
+				else {
+					defaultDisplay = false;
+					//customDisplay += '<span>SPECIAL TEXT</span>';
+					// PARSE THROUGH TEMPLATE FOR DATAFIELDS TO INSERT
+					customDisplay += cwd_cluster_display[m_group_num];
 
+					var expr = /(\$cwd-infowindow-)([a-zA-Z0-9_]+)/gm;
+				
+					var matches = customDisplay.match(expr);
+
+					if (matches === null) {
+						matches = [];
+					} 
+
+					for (var j=0; j<matches.length; j++) {
+						var x = matches[j].split("$cwd-infowindow-")[1];
+
+						if ( typeof(tmp[x]) === 'undefined' ) {
+							//column doesn't exist
+							customDisplay = customDisplay.replace( matches[j], '<br><b>ERROR - NO DATA COLUMN: '+x+',<br>IN MARKER GROUP: '+m_group_num+'</b><br>' );
+						}
+						else {
+							//database cell
+							customDisplay = customDisplay.replace( matches[j], tmp[x] );
+						}
+					}
+				}	
+
+				clusterDescription += '<a class="cwd-cluster-link" data-cwd-uid="'+id+'" id="'+tmp.id+'" >'+customDisplay+'</a><br>';
 			}
 
-			
-
 			var infoWindow = new google.maps.InfoWindow({
-			    	content:''
-			    			+ clusterDescription,
+			    	content: '<div class="cwd-cluster-infowindow">'+clusterDescription+'</div>',
+			    	maxWidth: 400,
 			    	position: cluster.getCenter()
 				});
-			infoWindow.open(map);
+			infoWindow.open(tableMeta[id]['map']);
 			
-			
-			openInfoWindow = infoWindow;
+			tableMeta[id]['openInfoWindow'] = infoWindow;
 			return event;
     		
 	    });
 
 
 		// Listen for click on map
-		map.addListener('click', function(event) {
+		tableMeta[id]['map'].addListener('click', function(event) {
 
-
-			/* If exists Add declusteredMarker back into Clusterer */
-			if (declusteredMarker !=null) {
-						declusteredMarker.setMap(null);
-						markerCluster.addMarker(declusteredMarker);
-						declusteredMarker = null;
+        	/* If exists Add declusteredMarker back into Clusterer */
+			if (tableMeta[id]['declusteredMarker'] !=null) {
+						tableMeta[id]['declusteredMarker'].setMap(null);
+						tableMeta[id]['markerCluster'].addMarker(tableMeta[id]['declusteredMarker']);
+						tableMeta[id]['declusteredMarker'] = null;
 			}
 
-			//var tmp = Object.entries(event);
-
-			//console.log(Object.entries(event));
 
 			//check if click is a cluster click
 			var tmp = '';
 			for ( var prop in event ) {
-				//console.log( prop);
+				
 				if (event[prop].explicitOriginalTarget && event[prop].explicitOriginalTarget.className) {
-					//console.log('-exists 1');
 					tmp = event[prop].explicitOriginalTarget.className; 
-
 				}
 				else if (event[prop].explicitOriginalTarget && event[prop].explicitOriginalTarget.parentNode && event[prop].explicitOriginalTarget.parentNode.className) {
-					//console.log('-exists 2');
 					tmp = event[prop].explicitOriginalTarget.parentNode.className;
-
 				}
 				else {
-					//console.log('--NULL');
 				}
 			}
 
 			// update if no cluster click
 			if (tmp.substring(0,7) == 'cluster') {
-
 			}
 			else {
-				//updateMarker(event.latLng);
-				//updateLabel(event.latLng);
 			}
 			
-			
-			//console.log('*** EVENT ***');
-			//console.log(event);
-
-			//console.log(event.ta.explicitOriginalTarget.className);
-			//console.log(event.ta.explicitOriginalTarget.parentNode.className);
-			
-
-			/*
-			console.log(event);
-			console.log(event.target);
-			console.log(event.xa.explicitOriginalTarget);
-			console.log(event.srcElement);
-			console.log(event.click);
-
-			var A = event.ta.explicitOriginalTarget.className;
-			var B = event.ta.explicitOriginalTarget.parentNode.className;
-			//(A.substring(0,7) == 'cluster') | (B.substring(0,7) == 'cluster')
-
-			// Check these event properties and do nothing if appears to be a map click made on a cluster object
-			if ( A ) {
-				if (A.substring(0,7) == 'cluster') { 
-				}
-			}
-			else if ( B ) {
-				if ( B.substring(0,7) == 'cluster') {
-				}
-			}
-			else {
-			
-				updateMarker(event.latLng);
-				updateLabel(event.latLng);
-			}
-			*/
-			
-			/*
-			updateMarker(event.latLng);
-			updateLabel(event.latLng);
-			*/
 		});
 
 
-		// Close infowindows on zoom_change
-		map.addListener('zoom_changed', function() {
-        	if (openInfoWindow) {
-        		openInfoWindow.close();
+		// Close infowindows on zoom_change (so infowindow doesn't get lost in a reclustering and behave strangely when declustered)
+		tableMeta[id]['map'].addListener('zoom_changed', function() {
+        	if (tableMeta[id]['openInfoWindow']) {
+        		tableMeta[id]['openInfoWindow'].close();
         	}
     	});
 
 
 		/* Decluster Selected Markers on Link Click */
 		$(document).on('click', '.cwd-cluster-link', function(event){
-    		//alert($(this).text());
-    		//console.log($(this));
 
-    		//console.log('Markers');
-    		//console.log(markers);
-
+    		var thisDiv = $(this);
+    		var id = thisDiv.attr('data-cwd-uid');
 
     		/* If exists Add declusteredMarker back into Clusterer */
-			if (declusteredMarker != null) {
-						declusteredMarker.setMap(null);
-						markerCluster.addMarker(declusteredMarker);
-						declusteredMarker = null;
+			if (tableMeta[id]['declusteredMarker'] != null) {
+						tableMeta[id]['declusteredMarker'].setMap(null);
+
+						tableMeta[id]['markerCluster'].addMarker(tableMeta[id]['declusteredMarker']);
+
+						tableMeta[id]['declusteredMarker'] = null;
 			}
 
-    		// NOTE id is the unique id from the database, not the user defined No.
+    		// NOTE: id is the unique id from the database, not the user defined No.
     		var link_id = $(this).attr('id');
-    		//var selected_marker= markers.find(function (obj) { return obj.id == link_id } );
     		
-    		//console.log(cluster);
-    		//console.log(markerCluster.getMarkers());
-    		declusteredMarker = cluster.find(function (obj) { return obj.cwd_id == link_id } );
-    		//console.log(selected_marker);
+    		tableMeta[id]['declusteredMarker'] = tableMeta[id]['cluster'].find(function (obj) { return obj.cwd_id == link_id } );
+    		tableMeta[id]['markerCluster'].removeMarker(tableMeta[id]['declusteredMarker']);
+    		tableMeta[id]['markerCluster'].redraw();
+    		tableMeta[id]['declusteredMarker'].setMap(tableMeta[id]['map']);
 
-    		
-    		markerCluster.removeMarker(declusteredMarker);
-    		console.log(markerCluster);
-    		markerCluster.redraw();
-
-    		//declusteredMarker.setZIndex(100000);
-    		//declusteredMarker.setOpacity(1);
-
-    		declusteredMarker.setMap(map);
-
-    		//console.log("Z INDEX:");
-    		//console.log( declusteredMarker.getZIndex() );
-
-
-    		new google.maps.event.trigger(declusteredMarker, 'click');
-			map.setCenter(declusteredMarker.getPosition());
-
-			console.log(markerCluster.getPanes());
+    		new google.maps.event.trigger(tableMeta[id]['declusteredMarker'], 'click');
 
 
 		});
 
+		
+		$(document).on( 'click', '#cwd-display-topbar', function(event) {
+			/*console.log(this);
+			console.log($(this).find("[data-cwd-uid="+id+"]"));
+			console.log($(this).data('cwd-uid'));
+			console.log(id);
+			console.log(event);
+			console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+			alert('!!!');*/
+			console.log(id);
 
+			if ( $(this).data('cwd-uid') === id ) {
 
+				if ( $(this).hasClass('cwd-info-full') === true ) {
+						$(this).css('width', 'auto');
+						$(this).css('height', 'auto');
+						$(this).css('position', 'absolute');
+						$(this).css('background', 'transparent');
+						$(this).css('color', 'black');
+						$(this).css('opacity', '.65');
+						$(this).css('padding', '0px');
+						$(this).css('top', '-2px');
+						$(this).css('left', '0px');
+
+						$(this).removeClass('cwd-info-full');
+
+						$(this).parent().css('position', 'static');
+						$(this).parent().css('padding', '0px');
+						$(this).parent().css('border', 'none');
+
+						var box = $('#'+id);
+
+						var tmp = box.find("div[data-cwd-reattach="+id+"]");
+
+						tmp.prepend($(this).parent());
+				}
+				else {
+					var chosen = $(this).data('cwd-uid');
+
+					$(this).parent().parent().attr('data-cwd-reattach', id);
+
+					var infowindow = $(this).parent(); 
+					infowindow.css('position', 'absolute');
+					infowindow.css('overflow', 'scroll');
+					infowindow.css('display', 'block');
+					infowindow.css('margin', '0px');
+					infowindow.css('z-index', '1');
+					infowindow.css('height', '100%');
+					infowindow.css('width', '100%');
+
+					infowindow.css('padding', '20px 10px 10px 10px');
+					infowindow.css('box-sizing', 'border-box');
+					infowindow.css('background', 'white');
+					infowindow.css('border', 'black 1px solid');
+
+					$(this).next().css('height', '100%');
+
+					$(this).css('margin', '0px 0px 0px 0px');
+					$(this).css('top', '0px');
+					$(this).css('padding', '0px');
+					$(this).addClass('cwd-info-full');
+
+					var box = $('#'+id);
+					box.find('.cwd-map-wrap-frontend').first().prepend(infowindow);
+
+				}
+			}
+
+		})
 
 	} //End initMap()
 
 
-	function callMap(cwd_static, itr ) {
-		alert('initME: '+itr);
-		initMap();
+$(initMap(itr, cwd_static[itr]['uid']));
 
-	}
 
-	// Get Map
-	if (typeof google === 'object' && typeof google.maps === 'object') {
-    	$(initMAP);
-    	alert('A');
-	} 
-	else {
-		alert('preItr: '+itr)
-		//$.getScript('https://maps.googleapis.com/maps/api/js?key='+cwd_api_key+'&language=en', callMap(cwd_static, itr) );
-	     $.getScript('https://maps.googleapis.com/maps/api/js?key='+cwd_api_key+'&language=en', function(){
-	         $(initMap);
-	         //initMap();
-	         //initMap($);
-	         //alert('ITR: '+itr);
-	     });
-	   //  alert(cwd_uid);
-	}
 
-} //End NEW for
+}// End new for 
+
+}))// End of getScript
 
 })( jQuery );

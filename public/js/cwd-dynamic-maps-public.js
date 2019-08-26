@@ -29,6 +29,7 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
+
 $.getScript('https://maps.googleapis.com/maps/api/js?key='+cwd_api_key+'&language=en', (function(){
 
 	var tableMeta = {};
@@ -119,6 +120,11 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 	 * Fill Javascript Table 
 	 */
 
+	 //console.log(cwd_visible_table_cols);
+	 //console.log(cwd_static[itr]['atts']['markers']);
+
+	 	var group_num = cwd_static[itr]['atts']['markers'];
+
 	 	var tableWrapper = $('<div>').attr('class', 'cwd-table-wrapper'); 
 	 	var table = $('<table>').addClass('widefat striped marker-sorter');
 	 	var tHead = $('<thead>'); 
@@ -129,34 +135,55 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 	 	var numCols = 0;
 	 	var colNames = Array();
 	 	var row, th, a, sLabel, sArrow, td, x, y, i, j;
-		for (x in firstRow) if (firstRow.hasOwnProperty(x)) {++numCols; colNames.push(x);}
+		for (x in firstRow) {
+			if ( firstRow.hasOwnProperty(x) ) {
+				/*console.log(x);
+				console.log( cwd_visible_table_cols[group_num][x] );
+				console.log( cwd_visible_table_cols[group_num][x] === 'on' );
+				console.log('---------------------------');
+				*/
+				if ( cwd_visible_table_cols[group_num][x] === 'on' /*|| x === 'id'*/ ) {
+					++numCols; 
+					colNames.push(x);
+				}
+			}
+		}
+
+
+
 
 		// Remove longitude and latitude columns from table
-		colNames.splice(colNames.indexOf('latitude'),1);
-		colNames.splice(colNames.indexOf('longitude'),1);
+		//colNames.splice(colNames.indexOf('latitude'),1);
+		//colNames.splice(colNames.indexOf('longitude'),1);
 	
-		numCols = numCols - 2;
+		//numCols = numCols - 2;
 
 		//Fill tHead & tFoot
 	 	row = $('<tr>');
 	 	for (y=0; y<numCols; ++y) {
 	 		var colName = colNames[y];
-	 		th = $('<th>').attr('data-cwd-col', colName).attr('scope', 'col').addClass('sortable asc cwd-sortable-col');
-	 		if ($.isNumeric(firstRow[colName])) {
-	 			th.addClass('cwd_number');
-	 		}
-	 		a = $('<a>');
-	 		
-	 		if (colName == 'id') {
-	 			sLabel = $('<span>').text( colName.toUpperCase() ); // display id as ID
-	 		}
-	 		else {
-				sLabel = $('<span>').text( colName.replace(/_/g, ' ') ); // remove underline from column_name
-	 		}
-	 		sArrow = $('<span>').addClass('sorting-indicator');
-	 		a.append(sLabel).append(sArrow);
-	 		th.append(a);
-	 		row.append(th);
+
+	 		if (/*colName !== 'id' || numCols === 1*/ true ) { 
+
+		 		th = $('<th>').attr('data-cwd-col', colName).attr('scope', 'col').addClass('sortable asc cwd-sortable-col');
+		 		if ($.isNumeric(firstRow[colName])) {
+		 			th.addClass('cwd_number');
+		 		}
+		 		a = $('<a>');
+		 		
+		 		if (colName == 'id') {
+		 			sLabel = $('<span>').text( colName.toUpperCase() ); // display id as ID
+		 		}
+		 		else {
+					sLabel = $('<span>').text( colName.replace(/_/g, ' ') ); // remove underline from column_name
+		 		}
+		 		sArrow = $('<span>').addClass('sorting-indicator');
+		 		a.append(sLabel).append(sArrow);
+		 		th.append(a);
+		 		row.append(th);
+		 	} 
+
+
 	 	}
 	 	var rowClone = row.clone();
 	 	tHead.append(row);
@@ -167,26 +194,38 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 	 	for (i=0; i<numRows; ++i) {
 	 		row = $('<tr>');
 	 		row.addClass('cwd-match'); //Give ok for pagination to all rows
-	 		row.attr('id', '"cwd-row-'+i+'"');
-	 		row.hide();
+	 		//row.attr('id', '"cwd-row-'+i+'"');
+	 		row.attr('id', '"cwd-row-'+markers[i]['id']+'"');
+
+	 		//***row.hide();
+
 
 	 		for ( j=0; j<numCols; ++j) {
 	 			var colName = colNames[j];
- 				td = $('<td>').attr('data-cwd-col', colName);
 
- 				//make link to marker on map
- 				if (j == 0) {
- 					var linkWrap = $('<a>').addClass('cwd-link-marker').text(markers[i][colName]);
- 					td.append(linkWrap);
- 				}
- 				else {
- 					td.text(markers[i][colName]);
- 				}
+	 			if (/*colName !== 'id' || numCols === 1*/ true) { //???
 
-	 			row.append(td);
+	 				td = $('<td>').attr('data-cwd-col', colName);
+
+	 				//make link to marker on map
+	 				/*if (j == 0) {
+	 					var linkWrap = $('<a>').addClass('cwd-link-marker').text(markers[i][colName]);
+	 					td.append(linkWrap);
+	 				}
+	 				else {
+	 					var linkWrap = $('<a>').attr('data-cwd-marker-id', markers[i][colNames[0]]).text(markers[i][colName]);
+	 					td.append(linkWrap);
+	 				}*/
+
+	 				var linkWrap = $('<a>').attr('data-cwd-marker-id', markers[i]['id']).text(markers[i][colName]);
+	 				td.append(linkWrap);
+
+		 			row.append(td);
+		 		} //???
+
 
 	 		}
-	 		table.prepend(row);
+	 		table.prepend(row); 
 	 	}
 	 	table.append(tFoot);
 
@@ -200,6 +239,14 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 	 	thisShortcodeBox.find(".tablenav-pages").hide();
 	 	thisShortcodeBox.find(".marker-sorter").hide();
 
+
+
+
+
+		if (numCols === 0) {
+			wrap.css('display', 'none');
+			thisShortcodeBox.find('.cwd-map-wrap-frontend').css('width', '100%');
+		}
 
 
 	 /*
@@ -217,6 +264,7 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 		var numRows;
 		var totalPages;
 		var currPage;
+		var zoomLevel = null;
 
 
 		var declusteredMarker;
@@ -226,6 +274,7 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 		var markerColTypes = JSON.parse(cwd_static[itr]['marker_col_types']);
 
 		tableMeta[thisShortcodeBox.attr('id')] = { 
+			zoomLevel:zoomLevel,
 			rows:rows, 
 			input:input, 
 			maxPageText:maxPageText, 
@@ -254,6 +303,9 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 	 		//Remove noResultsRow if exists
 	 		var noResultsTr;
 			var tbody = thisShortcodeBox.find(".marker-sorter tbody");
+
+
+
 			noResultsTr = tbody.find("#no-results-row");
 			if ( noResultsTr ) {
 				noResultsTr.remove();
@@ -262,7 +314,8 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			
 			var id = thisShortcodeBox.attr('id');
 
-			tableMeta[id]['rows'].hide();
+			//***tableMeta[id]['rows'].hide();
+			tableMeta[id]['rows'].css('visibility', 'hidden').css('position', 'absolute');
 
 			tableMeta[id]['matchedRows'] = tableMeta[id]['rows'].filter('.cwd-match');
 
@@ -345,10 +398,12 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 
 			function updatePageStats() {
 
-				tableMeta[id]['rows'].hide();
+				//***tableMeta[id]['rows'].hide();
+				tableMeta[id]['rows'].css('visibility', 'hidden').css('position', 'absolute');
 				for (var i=0; i<tableMeta[id]['maxPerPage']; i++) {
-					$(tableMeta[id]['matchedRows'][(tableMeta[id]['currPage']*tableMeta[id]['maxPerPage'] - tableMeta[id]['maxPerPage'] + i)]).show();
-		
+					//$(tableMeta[id]['matchedRows'][(tableMeta[id]['currPage']*tableMeta[id]['maxPerPage'] - tableMeta[id]['maxPerPage'] + i)]).show();
+					$(tableMeta[id]['matchedRows'][(tableMeta[id]['currPage']*tableMeta[id]['maxPerPage'] - tableMeta[id]['maxPerPage'] + i)]).css('visibility', 'visible').css('position', 'static');
+
 					if ( (tableMeta[id]['currPage']*tableMeta[id]['maxPerPage'] - tableMeta[id]['maxPerPage'] + i ) >= tableMeta[id]['numRows'] ){
 						break;
 					}
@@ -387,7 +442,8 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 		 */
 		thisShortcodeBox.find("#cwd-marker-filter-button").click( function(event){
 
-			var thisShortcodeBox = $(this).parent().parent().parent().parent().parent();
+			var a = $(this);
+			var thisShortcodeBox = a.parents('.cwd-frontend-box');
 
 			thisShortcodeBox.find("#howTo").hide();
 
@@ -425,7 +481,8 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			var th = $(this);
 
 			var colName = th.data('cwd-col');
-			var table = th.parent().parent().parent();
+			var table = th.parents('table');
+
 			var tableBody = table.find("tbody");
 			var tableRows = tableBody.children("tr");
 			var ths = table.find("th[data-cwd-col="+colName+"]");
@@ -433,6 +490,9 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			var siblings = table.find("th[data-cwd-col!="+colName+"]");
 			var isReverse = 1;
 			var desc = th.hasClass('desc');
+
+			/*alert(desc);
+			console.log(ths); */
 			
 			if (desc) {
 				ths.removeClass('desc').addClass('asc');
@@ -445,8 +505,8 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			var isNum = th.hasClass('cwd_number');
 			
 			tableRows.sort( function(a,b) {
-			 	var aData = $(a).find("td[data-cwd-col="+colName+"]").html().toLowerCase();
-		 		var bData = $(b).find("td[data-cwd-col="+colName+"]").html().toLowerCase();
+			 	var aData = $(a).find("td[data-cwd-col="+colName+"] a ").html().toLowerCase();
+		 		var bData = $(b).find("td[data-cwd-col="+colName+"] a ").html().toLowerCase();
 		 		if (colName == 'id') {
 		 			aData = $(a).find("td[data-cwd-col="+colName+"] a").html().toLowerCase();
 		 			bData = $(b).find("td[data-cwd-col="+colName+"] a").html().toLowerCase();
@@ -464,27 +524,68 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 				 	}
 				 }
 				 return ret * isReverse;
-			 });
+			});
+
 			tableRows.detach().appendTo(tableBody);
 			rows = tableRows;
 			ths.removeClass('sortable').addClass('sorted');
-			siblings.removeClass('sorted asc').addClass('sortable desc');
 
+			siblings.removeClass('sorted desc').addClass('sortable asc');
 
-			paginate(thisShortcodeBox);
+			//Make visible first n rows that are cwd-match
+			tableRows.css('visibility', 'hidden').css('position', 'absolute');
+
+			var thisShortcodeBox = $(this).parents('.cwd-frontend-box');
+			var id = thisShortcodeBox.attr('id');
+
+			var currMatches = th.parents('table').find('tbody tr[class="cwd-match"]');
+
+			tableMeta[id]['matchedRows'] = currMatches;
+
+			for (var i=0; i<tableMeta[id]['maxPerPage']; i++) {
+				$(tableMeta[id]['matchedRows'][(tableMeta[id]['currPage']*tableMeta[id]['maxPerPage'] - tableMeta[id]['maxPerPage'] + i)]).css('visibility', 'visible').css('position', 'static');
+			}
+
 		}) //End of Pagination Functions
+
 
 
 	/*
 	 * Give Table Entry Links Actions on the Map
 	 */
-		thisShortcodeBox.find(".cwd-link-marker").click( function(event) {
-			var a = $(this);
-			var sibs = a.parent().siblings();
+		//thisShortcodeBox.find(".cwd-link-marker").click( function(event) {
+		thisShortcodeBox.find("a[data-cwd-marker-id]").click( function(event) {
 
-			var thisShortcodeBox = $(this).parent().parent().parent().parent().parent().parent().parent();
+			var a = $(this);
+
+			var thisShortcodeBox = a.parents('.cwd-frontend-box');
 			var id = thisShortcodeBox.attr('id');
 
+			var tmp = $.find("div[data-cwd-reattach="+id+"]");
+			if ( tmp.length === 1 ) {
+				// Reattach fullscreen infowindow to google defined infowindow 
+				var tmpWindow = $.find("button[data-cwd-uid="+id+"]");
+				tmpWindow = $(tmpWindow[0]); 
+
+				tmpWindow.css('width', 'auto');
+				tmpWindow.css('height', 'auto');
+				tmpWindow.css('position', 'absolute');
+				tmpWindow.css('background', 'transparent');
+				tmpWindow.css('color', 'black');
+				tmpWindow.css('opacity', '.65');
+				tmpWindow.css('padding', '0px');
+				tmpWindow.css('top', '-2px');
+				tmpWindow.css('left', '0px');
+
+				tmpWindow.removeClass('cwd-info-full');
+
+				tmpWindow.parent().css('position', 'static');
+				tmpWindow.parent().css('padding', '0px');
+				tmpWindow.parent().css('border', 'none');
+
+				tmp = $(tmp[0]);
+				tmp.prepend(tmpWindow.parent());
+			}
 
 			// Close Open Infowindows
 			if (tableMeta[id]['openInfoWindow']) {
@@ -500,7 +601,13 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			}
 			
 
-			var selectedMarker = tableMeta[id]['markerCluster'].getMarkers().find(function (obj) { return obj.cwd_id == a.text(); } )
+			//var selectedMarker = tableMeta[id]['markerCluster'].getMarkers().find(function (obj) { return obj.cwd_id == a.text(); } )
+			var selectedMarker = tableMeta[id]['markerCluster'].getMarkers().find(function (obj) { return obj.cwd_id == a.attr("data-cwd-marker-id"); } )
+
+			console.log('Selected');
+			console.log(selectedMarker);
+			console.log(a);
+
 
 			console.log('!!!Marker Cluster!!!');
 			console.log(tableMeta[id]['markerCluster']);
@@ -535,6 +642,8 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 					tableMeta[id]['markerCluster'].removeMarker(selectedMarker);
     				tableMeta[id]['markerCluster'].redraw();
 					tableMeta[id]['declusteredMarker'].setMap(tableMeta[id]['map']);
+
+					tableMeta[id]['declusteredMarker'].setTitle('cwd-declustered');
 	
 					new google.maps.event.trigger(tableMeta[id]['declusteredMarker'], 'click');
 			
@@ -549,43 +658,53 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 		})
 
 
-
-
-
-	 	
+	var map_options = JSON.parse(cwd_map_options);
 
 	function initMap(itr, id) {
 		var short_id = cwd_static[itr]['atts']['map'];
 		var m_group_num = cwd_static[itr]['atts']['markers']; 
 
-		var map_options = JSON.parse(cwd_static[itr]['maps_data']);
+
 
 		var selectedMap = map_options.find(function (obj) { return obj.id == short_id } );
 
-		if (typeof(selectedMap) == "undefined") {
+		/*if (typeof(selectedMap) == "undefined") {
 			alert('Error: No Map with this Id found');
 			return -1;
-		}
+		}*/
 
 
 		var centerLat = parseFloat(selectedMap['centerLat']);
 		var centerLng = parseFloat(selectedMap['centerLng']);
 
+		var bounded = parseInt(selectedMap['mapBounded']);
+
+		
 		var southBound = parseFloat(selectedMap['southBound']);
 		var westBound = parseFloat(selectedMap['westBound']);
 		var northBound = parseFloat(selectedMap['northBound']);
 		var eastBound = parseFloat(selectedMap['eastBound']);
 
+		var restrict;
+
+		if (bounded === 1) {
+			restrict = { 
+				latLngBounds: { 
+					north: northBound,
+        			south: southBound,
+        			west: westBound,
+        			east: eastBound,
+        		},
+		        strictBounds: false,
+		    }
+		}
+		else {
+			restrict = {};
+		}
+
+		
+
 		var options = {
-				/*
-				zoom:18,
-				minZoom:18,
-				maxZoom:22,
-				center:{lat:42.306492,lng:-71.530936},
-				mapTypeId: 'hybrid',
-				tilt: 45,
-				heading: 90
-				*/
 				zoom: parseInt(selectedMap['zoom']),
 				minZoom: parseInt(selectedMap['minZoom']),
 				maxZoom: parseInt(selectedMap['maxZoom']),
@@ -593,68 +712,159 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 				mapTypeId: selectedMap['mapTypeId'],
 				tilt: parseInt(selectedMap['tilt']),
 				heading: parseInt(selectedMap['heading']),
-				restriction: {
-		        	latLngBounds: { north: northBound,
-        							south: southBound,
-        							west: westBound,
-        							east: eastBound,
-        			},
-		        	strictBounds: false,
-		        },
-
+				//restriction: restrict,
+		        mapTypeControlOptions: { style: google.maps.MapTypeControlStyle.DROPDOWN_MENU, },
 		}
+
+		if (bounded === 1) {
+			options.restriction = restrict;
+		}
+
 
 		var mapWrap = $("#"+cwd_static[itr]['uid']).find('div[class="cwd-map-wrap-frontend"]')[0];
 
 		tableMeta[id]['map'] = new google.maps.Map(mapWrap, options);
 
-		// Add Custom Button(s)
-		// Create the DIV to hold the control and call the CenterControl()
-        // constructor passing in this DIV.
-        var newControlDiv = document.createElement('div');
-        var newControl = new NewControlButton(newControlDiv, tableMeta[id]['map']);
+		tableMeta[id]['map']['zoomLevel'] = options['zoom'];
 
-        var myDiv = $('#floating-panel');
 
-        newControlDiv.index = 1;
-        tableMeta[id]['map'].controls[google.maps.ControlPosition.TOP_LEFT].push(newControlDiv);
+        
 
         function recenterMap() {
         	tableMeta[id]['map'].setCenter(new google.maps.LatLng(centerLat, centerLng));
         }
 
-        /*
+        function togglePolyline() {
+			if ( typeof(polyline) !== 'undefined' ) {
+				if ( polyline.getMap() ) {
+					polyline.setMap(null);
+				}
+				else {
+					polyline.setMap(tableMeta[id]['map']);
+				}
+			}
+		};
+
+		function toggleOverlay() {
+			if ( typeof(overlay) !== 'undefined' ) {
+				if ( overlay.getMap() ) {
+				overlay.setMap(null);
+				}
+				else {
+					overlay.setMap(tableMeta[id]['map']);
+				}
+			}
+		};
+
+	    /*
 		 * Set Up the Buttons for the Map
 		 */
-		function NewControlButton(controlDiv, map) {
+		function OverlayButton(controlDiv, map) {
 			// Set CSS for the control border.
 			var controlUI = document.createElement('div');
+
 			controlUI.style.backgroundColor = '#fff';
-			controlUI.style.border = '2px solid #fff';
+			//controlUI.style.border = '2px solid #fff';
 			controlUI.style.borderRadius = '2px';
-			controlUI.style.boxShadow = '0 2px 4px rgba(0,0,0,.2)';
+			//controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+			//controlUI.style.boxShadow = '0 2px 4px rgba(0,0,0,.2)';
+			controlUI.style.boxShadow = ' 0px 1px 4px -1px rgba(0, 0, 0, 0.3)';
 			controlUI.style.cursor = 'pointer';
-			controlUI.style.marginBottom = '22px';
+			//controlUI.style.marginBottom = '22px';
 			controlUI.style.textAlign = 'center';
-			controlUI.title = 'Click to Center Map';
+			controlUI.style.height = '40px';
+			controlUI.title = 'Click to Toggle Overlay';
 
 			controlUI.style.marginTop = '10px';
 			controlUI.style.marginRight = '10px';
-			//controlUI.style.backgroundImage = 'url('+cwd_plugin_url+'/cwd-dynamic-maps/public/img/home_icon.png)';
-			controlUI.style.height = '36px';
-			controlUI.style.width = '36px';
+			controlUI.style.float = 'right';
 
 			controlDiv.appendChild(controlUI);
 
 			// Set CSS for the control interior.
 			var controlText = document.createElement('div');
+			controlText.style.borderRadius = '2px';
+			controlText.classList.add("cwd-btn-opacity");
 			//controlText.style.color = 'rgb(25,25,25)';
-			//controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-			//controlText.style.fontSize = '16px';
-			//controlText.style.lineHeight = '37px';
-			//controlText.style.paddingLeft = '3px';
-			//controlText.style.paddingRight = '3px';
-			controlText.innerHTML = '<img  class="cwd-map-home-button" style="height:25px;width:25px;margin-top:5px;" src="'+cwd_plugin_url+'/cwd-dynamic-maps/public/img/home_icon.png" >';
+			controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+			controlText.style.fontSize = '18px';
+			controlText.style.lineHeight = '40px';
+			controlText.style.paddingLeft = '5px';
+			controlText.style.paddingRight = '5px';
+			controlText.innerHTML = 'Overlay';
+			controlUI.appendChild(controlText);
+
+			// Setup the click event listeners
+			controlUI.addEventListener('click', function() {
+			  toggleOverlay();
+			});
+
+		}
+
+		function PolylineButton(controlDiv, map) {
+			// Set CSS for the control border.
+			var controlUI = document.createElement('div');
+			controlUI.style.backgroundColor = '#fff';
+			//controlUI.style.border = '2px solid #fff';
+			controlUI.style.borderRadius = '2px';
+			controlUI.style.boxShadow = ' 0px 1px 4px -1px rgba(0, 0, 0, 0.3)';
+			controlUI.style.cursor = 'pointer';
+			controlUI.style.textAlign = 'center';
+			controlUI.style.height = '40px';
+			controlUI.title = 'Click to Toggle Polyline';
+
+			controlUI.style.marginTop = '10px';
+			controlUI.style.marginRight = '10px';
+			controlUI.style.float = 'right';
+
+			controlDiv.appendChild(controlUI);
+
+			// Set CSS for the control interior.
+			var controlText = document.createElement('div');
+			//controlText.attr('class', 'cwd-btn-opacity');
+			controlText.classList.add("cwd-btn-opacity");
+			//controlText.style.color = 'rgb(25,25,25)';
+			controlText.style.borderRadius = '2px';
+			controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+			controlText.style.fontSize = '18px';
+			controlText.style.lineHeight = '40px';
+			controlText.style.paddingLeft = '5px';
+			controlText.style.paddingRight = '5px';
+			controlText.innerHTML = 'Polyline';
+			controlUI.appendChild(controlText);
+
+			// Setup the click event listeners
+			controlUI.addEventListener('click', function() {
+			  togglePolyline();
+			});
+
+		}
+
+		function HomeButton(controlDiv, map) {
+			// Set CSS for the control border.
+			var controlUI = document.createElement('div');
+			controlUI.style.backgroundColor = '#fff';
+			controlUI.style.border = '2px solid #fff';
+			controlUI.style.borderRadius = '2px';
+			controlUI.style.boxShadow = '0px 1px 4px -1px rgba(0, 0, 0, 0.3)';
+			controlUI.style.boxSizing = 'content-box';
+			controlUI.style.cursor = 'pointer';
+			controlUI.style.textAlign = 'center';
+			controlUI.title = 'Click to Center Map';
+
+			controlUI.style.marginTop = '10px';
+			controlUI.style.marginRight = '10px';
+			//controlUI.style.backgroundImage = 'url('+cwd_plugins_url+'/cwd-dynamic-maps/public/img/home_icon.png)';
+			controlUI.style.height = '36px';
+			controlUI.style.width = '36px';
+
+			controlUI.style.float = 'right';
+
+			controlDiv.appendChild(controlUI);
+
+			// Set CSS for the control interior.
+			var controlText = document.createElement('div');
+			controlText.innerHTML = '<img  class="cwd-map-home-button" style="" src="'+cwd_plugins_url+'/cwd-dynamic-maps/public/img/home_icon.png" >';
 			controlUI.appendChild(controlText);
 
 			// Setup the click event listeners
@@ -662,12 +872,13 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			  recenterMap();
 			});
 
-		} // End NewControlButton
+		} // End HomeButton
 
-		
-		if (selectedMap['polyline'] !== '' ) {
+			
+		var polyline;
+		if (selectedMap['polyline'] !== '' && selectedMap['polylineAllow'] == 1) {
 			var polylineCoordinates = JSON.parse( selectedMap['polyline'].replace(/;/g, ',') );	
-			var polyline = new google.maps.Polyline({
+			polyline = new google.maps.Polyline({
 			    path: polylineCoordinates,
 			    geodesic: false,
 			    strokeColor: '#FF0000',
@@ -676,6 +887,55 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			});
 			polyline.setMap(tableMeta[id]['map']);
 		}
+
+
+		var oNorth = (selectedMap['northOverlayBound'] != null ? parseFloat(selectedMap['northOverlayBound']) : 1.0);
+		var oSouth = (selectedMap['southOverlayBound'] != null ? parseFloat(selectedMap['southOverlayBound']) : 0.1);
+		var oEast = (selectedMap['eastOverlayBound'] != null ? parseFloat(selectedMap['eastOverlayBound']) : 1.0);
+		var oWest = (selectedMap['westOverlayBound'] != null ? parseFloat(selectedMap['westOverlayBound']) : 0.1);
+
+		var overlayBounds = {
+			/*north:42.307121,
+			south:42.30590,
+			east:-71.53036,
+			west:-71.53145*/
+			north:oNorth,
+			south:oSouth,
+			east:oEast,
+			west:oWest,
+		}
+
+		var overlay;
+		if (selectedMap['overlay'] !== '' && selectedMap['overlayAllow'] == 1) { 
+			overlay = new google.maps.GroundOverlay(
+				//'../wp-content/plugins/cwd-dynamic-maps/admin/img/ArtTutor_GridPic',
+				cwd_base_url + selectedMap['overlay'],
+				overlayBounds, {clickable:false}
+				);
+			toggleOverlay();
+		}
+
+		
+		/* Add Custom Control Buttons*/
+		var newControlDiv = document.createElement('div');
+		newControlDiv.style.right = '50px';
+
+       
+        if ( typeof(overlay) !== 'undefined' ) {
+        	var newOverlayBtn = new OverlayButton(newControlDiv, tableMeta[id]['map']);
+        }
+        
+        if ( typeof(polyline) !== 'undefined' ) {
+        	var newPolylineBtn = new PolylineButton(newControlDiv, tableMeta[id]['map']);
+        }
+
+        var newHomeBtn = new HomeButton(newControlDiv, tableMeta[id]['map']);
+
+        var myDiv = $('#floating-panel');
+
+        newControlDiv.index = 1;
+        tableMeta[id]['map'].controls[google.maps.ControlPosition.TOP_LEFT].push(newControlDiv);
+
 
 
 		// Listen for Map Drags and Limit Range by ReCentering
@@ -723,11 +983,12 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			var coords = {lat:parseFloat(m.latitude), lng:parseFloat(m.longitude)};
 			var marker = new google.maps.Marker({
 				icon: {
-					url: cwd_plugin_url+'/cwd-dynamic-maps/public/img/location-pin-curvy-outline.png',
+					url: cwd_plugins_url+'/cwd-dynamic-maps/public/img/location-pin-curvy-outline.png',
 					scaledSize:  new google.maps.Size(20, 20), // scaled size
 				},
 				position:coords,
 				cwd_id:m.id,
+				opacity: 1,
 				
 			});
 			tableMeta[id]['cluster'].push(marker); 
@@ -764,11 +1025,11 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 
 						if ( isImgType.length > 0 &&  m[x] === '' ) {
 							//default image
-							contents = contents.replace( matches[i], cwd_plugin_url+'/cwd-dynamic-maps/public/img/camera-icon.png' );
+							contents = contents.replace( matches[i], cwd_plugins_url+'/cwd-dynamic-maps/public/img/camera-icon.png' );
 						}
 						else if( isImgType.length > 0 &&  m[x] !== '' ) {
 							//img relative path
-							contents = contents.replace( matches[i], cwd_base_url +'/'+ m[x] );
+							contents = contents.replace( matches[i], cwd_base_url +/*'/'+*/ m[x] );
 
 						}
 						else if ( typeof(m[x]) === 'undefined' ) {
@@ -783,9 +1044,8 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 				}
 		
 				var infoWindow = new google.maps.InfoWindow({
-			    	content: contents
+			    	content: '<div id="cwd-display-topbar-wrap" style="/*padding:5px;*/"><button type="button" data-cwd-uid="'+id+'" id="cwd-display-topbar">&boxbox;</button><div class="cwd-infowindow" style="overflow:scroll;"><div style="height:100%; min-width:100%; width:auto; box-sizing:content-box;">'+contents+'</div></div></div>'
 				});
-
 
 				marker.addListener('click', function(event) {
 					//Close open infoWindows is exist
@@ -793,9 +1053,20 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 						tableMeta[id]['openInfoWindow'].close();
 					}
 
-
 					//Open this infoWindow and save as the openInfoWindow
 					infoWindow.open(tableMeta[id]['map'], marker);
+
+
+
+
+
+
+					
+
+					
+
+
+
 
 					//Save this infoWindow as the openInfoWindow
 					tableMeta[id]['openInfoWindow'] = infoWindow;
@@ -806,12 +1077,15 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 
 
 			}
+
 		} // End addMarkers
+
+	
 
 		var mcOptions = { 
 							zoomOnClick: false,
 							averageCenter: true,
-							imagePath: cwd_plugin_url+'/cwd-dynamic-maps/public/img/m',
+							imagePath: cwd_plugins_url+'/cwd-dynamic-maps/public/img/m',
 							//imagePath: '../wp-content/plugins/cwd-dynamic-maps/public/img/m',
 							gridSize: 40, //
 							maxZoom: 21, //On smallest possible zoom force all markers to be shown
@@ -862,8 +1136,7 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 			var clusterDescription = '<br>';
 			var cols;
 			var defaultDisplay = true;
-			var customDisplay = '';
-			var linkCode = '';
+			//var customDisplay = '';
 
 
 			for (var i=0; i<clusterSize; i++) {
@@ -912,7 +1185,6 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 				});
 			infoWindow.open(tableMeta[id]['map']);
 			
-			
 			tableMeta[id]['openInfoWindow'] = infoWindow;
 			return event;
     		
@@ -953,12 +1225,68 @@ for (var itr=0; itr<cwd_static.length; itr++) {
 		});
 
 
-		// Close infowindows on zoom_change
-		tableMeta[id]['map'].addListener('zoom_changed', function() {
+		// Close infowindows on zoom_change (so infowindow doesn't get lost in a reclustering and behave strangely when declustered)
+		tableMeta[id]['map'].addListener('zoom_changed', function(event) {
+        	var lastZoom = tableMeta[id]['map']['zoomLevel'];
+        	var newZoom = tableMeta[id]['map'].getZoom();
+
+
         	if (tableMeta[id]['openInfoWindow']) {
+
+        		var anchor_id = null;
+        		if ( typeof(tableMeta[id]['openInfoWindow']['anchor']) !== 'undefined' && tableMeta[id]['openInfoWindow']['anchor'] !== 'undefined' && tableMeta[id]['openInfoWindow']['anchor'] !== null && tableMeta[id]['openInfoWindow']['anchor'].hasOwnProperty('cwd_id') ) {
+    				console.log(tableMeta[id]['openInfoWindow']['anchor']['cwd_id']);
+    				anchor_id = tableMeta[id]['openInfoWindow']['anchor']['cwd_id'];
+        		}
+
         		tableMeta[id]['openInfoWindow'].close();
         	}
+
+        	//alert('zoom');
+        	var idle1 = google.maps.event.addListener( tableMeta[id]['map'], 'idle', function(event) { 
+
+    			//google.maps.event.clearListeners(tableMeta[id]['map'], 'idle');
+    			google.maps.event.removeListener(idle1);
+
+
+    			//new google.maps.event.trigger(tableMeta[id]['declusteredMarker'], 'click');
+    			// if not a cluster infowindow
+    			if (anchor_id !== null) {
+    				var tmp = tableMeta[id]['markerCluster'].getMarkers().find(function (obj) { return obj.cwd_id == anchor_id; } );
+    				//if selected marker is NOT declustered 
+    				if (tmp) {
+    					console.log('Tmp-ID:'+tmp['cwd_id']);
+    					//new google.maps.event.trigger(tmp, 'click');
+
+
+    					// recluster old decluster
+    					if ( tableMeta[id]['declusteredMarker'] ) {
+    						tableMeta[id]['declusteredMarker'].setMap(null);
+							tableMeta[id]['markerCluster'].addMarker(tableMeta[id]['declusteredMarker']);
+						}
+						
+						// decluster new selected marker
+						tableMeta[id]['declusteredMarker'] = tmp;
+						tableMeta[id]['markerCluster'].removeMarker(tmp);
+    					tableMeta[id]['markerCluster'].redraw();
+    					tableMeta[id]['declusteredMarker'].setMap(tableMeta[id]['map']);
+
+    				}
+
+    				new google.maps.event.trigger(tableMeta[id]['declusteredMarker'], 'click');
+
+    			}
+
+ 
+
+
+    		});
+
+    		//google.maps.event.removeListener(idle1);
+
     	});
+
+    
 
 
 		/* Decluster Selected Markers on Link Click */
@@ -984,15 +1312,83 @@ for (var itr=0; itr<cwd_static.length; itr++) {
     		tableMeta[id]['markerCluster'].redraw();
     		tableMeta[id]['declusteredMarker'].setMap(tableMeta[id]['map']);
 
+    		tableMeta[id]['declusteredMarker'].setTitle('cwd-declustered');
+
     		new google.maps.event.trigger(tableMeta[id]['declusteredMarker'], 'click');
 
+
+    		
 		});
 
+		
+		$(document).on( 'click', '#cwd-display-topbar', function(event) {
+
+			// Perform on the currently selected map 
+			if ( $(this).data('cwd-uid') === id ) {
+
+				if ( $(this).hasClass('cwd-info-full') === true ) {
+						$(this).css('width', 'auto');
+						$(this).css('height', 'auto');
+						$(this).css('position', 'absolute');
+						$(this).css('background', 'transparent');
+						$(this).css('color', 'black');
+						$(this).css('opacity', '.65');
+						$(this).css('padding', '0px');
+						$(this).css('top', '-2px');
+						$(this).css('left', '0px');
+
+						$(this).removeClass('cwd-info-full');
+
+						$(this).parent().css('position', 'static');
+						$(this).parent().css('padding', '0px');
+						$(this).parent().css('border', 'none');
+
+						var box = $('#'+id);
+
+						var tmp = box.find("div[data-cwd-reattach="+id+"]");
+
+						tmp.prepend($(this).parent());
+				}
+				else {
+					
+					$(this).parent().parent().attr('data-cwd-reattach', id);
+
+					var infowindow = $(this).parent(); 
+					infowindow.css('position', 'absolute');
+					infowindow.css('overflow', 'scroll');
+					infowindow.css('display', 'block');
+					infowindow.css('margin', '0px');
+					infowindow.css('z-index', '1');
+					infowindow.css('height', '100%');
+					infowindow.css('width', '100%');
+
+					infowindow.css('padding', '20px 10px 10px 10px');
+					infowindow.css('box-sizing', 'border-box');
+					infowindow.css('background', 'white');
+					infowindow.css('border', 'black 1px solid');
+
+					$(this).next().css('height', '100%');
+
+					$(this).css('margin', '0px 0px 0px 0px');
+					$(this).css('top', '0px');
+					$(this).css('padding', '0px');
+					$(this).addClass('cwd-info-full');
+
+					var box = $('#'+id);
+					//box.find('.cwd-map-wrap-frontend').first().prepend(infowindow);
+					box.find('.cwd-map-wrap-frontend').children().first().prepend(infowindow);
+
+
+				}
+			}
+
+		})
 
 	} //End initMap()
 
 
 $(initMap(itr, cwd_static[itr]['uid']));
+
 
 
 }// End new for 

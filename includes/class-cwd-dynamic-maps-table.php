@@ -38,7 +38,8 @@ class Cwd_Dynamic_Maps_Map_Table {
 		global $wpdb;
 		$table_name = $this->get_table_name();
 
-		$cols = '`'.implode('`,`', $cols).'`';
+		//$cols = '`'.implode('`,`', $cols).'`';
+		$cols = implode(',', $cols);
 		$table = (
 			$wpdb->get_results( "SELECT $cols from `$table_name` Order by id desc")
 		);
@@ -67,11 +68,20 @@ class Cwd_Dynamic_Maps_Map_Table {
 				mapTypeId varchar(255), 
 				tilt int,
 				heading int,
+				mapBounded int,
 				northBound float(10,6), 
 				eastBound float(10,6),
 				southBound float(10,6),
 				westBound float(10,6),
-				polyline varchar(2048), 
+				polylineAllow int,
+				polyline varchar(2048),
+				overlayAllow int,
+				overlay varchar(255),
+				northOverlayBound float(10,6), 
+				eastOverlayBound float(10,6), 
+				southOverlayBound float(10,6), 
+				westOverlayBound float(10,6), 
+
 				UNIQUE KEY id (id)
 			)";
 
@@ -95,8 +105,13 @@ class Cwd_Dynamic_Maps_Map_Table {
 		$data_row = $args;
 		unset($data_row['action']);
 		unset($data_row['param']);
+
 		$data_row['mapName'] = str_replace(' ', '_', $data_row['mapName']);
 		$data_row['time'] = current_time('mysql'); 
+
+		foreach ($data_row as $key => $val) {
+			$data_row[$key] = ($data_row[$key] === '' ? null : $val);
+		}
 
 		$id = $args['id']; 
 		if ( count($wpdb->get_results("SELECT * from `$table_name`  WHERE id = '$id'")) === 1 ) {
@@ -395,7 +410,6 @@ class Cwd_Dynamic_Maps_Marker_Table {
 	}//End delete_table_row() 
 
 	//Ajax version import markers data
-	
 	public function import_markers_data() {
 		$response = false;
 
@@ -594,13 +608,7 @@ class Cwd_Dynamic_Maps_Marker_Table {
 		$data_row['time'] = current_time('mysql'); 
 
 		$id = $args['id']; 
-		if ($id == '') {
-			$result = $wpdb->insert( 
-				$table_name,
-				$data_row
-			);
-		}
-		else {
+		if ( count($wpdb->get_results("SELECT * from `$table_name`  WHERE id = '$id'")) === 1 ) {
 			$result = $wpdb->update( 
 				$table_name, 
 				$data_row,
@@ -608,7 +616,13 @@ class Cwd_Dynamic_Maps_Marker_Table {
 					'id' => $id,
 				) 
 			);
-
+		}
+		else {
+			//unset($data_row['id'])
+			$result = $wpdb->insert( 
+				$table_name,
+				$data_row
+			);
 		}
 		return $result;
 	}//End update_markers()
@@ -617,8 +631,6 @@ class Cwd_Dynamic_Maps_Marker_Table {
 	public function add_table_cols($cols) {
 		global $wpdb;
 		$table_name = $this->get_table_name();
-
-		var_dump($cols);
 
 		$res = 0;
 		foreach ($cols as $col) {
@@ -634,10 +646,16 @@ class Cwd_Dynamic_Maps_Marker_Table {
 		global $wpdb;
 		$table_name = $this->get_table_name();
 
+		$types = $this->get_data_types();
+
 		$res = 0;
 		foreach ($cols as $key => $val) {
 			if ($key != $val ) {
-				$sql = "ALTER table `$table_name` Change COLUMN `$key` `$val` varchar(255) DEFAULT ''"; 
+
+				$type = array_filter( $types, function($elt) use($key) {return $elt->COLUMN_NAME == $key;} );
+				$type = array_values($type)[0];
+
+				$sql = "ALTER table `$table_name` Change COLUMN `$key` `$val` varchar(255) DEFAULT '' COMMENT '$type->COLUMN_COMMENT' "; 
 				$res = ( ($wpdb->query($sql) == 1)? ++$res : $res );
 			}
 		}
@@ -663,19 +681,27 @@ class Cwd_Dynamic_Maps_Marker_Table {
 	    	$del_arr = array();
 	    	$rn_arr = array();
 
-	    	//var_dump($cols);
+	    	$visible = get_option('cwd_dynamic_maps_visible_cols');
+	    	$visible = empty($visible) ? array() : $visible ;
+	    	$v_group = array();
+	    	$group_num;
 	    	
 	    
 	    	foreach( $cols as $key => $value ) {
 	    		$matches;
-	    		if(preg_match('/^cwd_group_form_data_add_cols_[0-9]+$/', $key)) {
+	    		if (preg_match('/^cwd_group_form_data_add_cols_[0-9]+$/', $key)) {
 	    			//$add_arr[$key] = str_replace(' ', '_', $value);
 	    			$tmp = explode('cwd_group_form_data_add_cols_', $key);
-	    			$tmp = ( (sizeof($tmp) === 2) ? $cols['cwd_group_form_data_type_add_cols_'.$tmp[1]] : '');
+	    			$type = ( (sizeof($tmp) === 2) ? $cols['cwd_group_form_data_type_add_cols_'.$tmp[1]] : '');
 
+	    			$value = str_replace(' ', '_', $value);
 
+	    			if ($value !== '' ) {
+		    			$add_arr[$key] = array($value, $type);
 
-	    			$add_arr[$key] = array(str_replace(' ', '_', $value), $tmp);
+		    			$checked = $cols['cwd_group_form_data_visible_add_cols_'.$tmp[1]];
+		    			$v_group[$value] = $checked;
+		    		}
 	    			//$add_arr[$key] = array( str_replace(' ', '_', $value), $cols['cwd_group_form_data_type_add_cols_'.$tmp[1]]  );
 	    			
 	    			/*$tmp = explode('cwd_group_form_data_add_cols_', $key);
@@ -685,17 +711,38 @@ class Cwd_Dynamic_Maps_Marker_Table {
 
 	    			
 	    		}
-	    		else if(preg_match('/^cwd_group_form_data_delete_cols_[a-zA-Z0-9_]+$/', $key)) {
+	    		else if (preg_match('/^cwd_group_form_data_delete_cols_[a-zA-Z0-9_]+$/', $key)) {
 	    			$del_arr[$key] = str_replace(' ', '_', $value);
+	    			//unset($v_group[$key]);
 	    		}
-	    		else if(preg_match('/^cwd_group_form_data_curr_cols_([a-zA-Z0-9_]+)$/', $key, $matches)) {
+	    		else if (preg_match('/^cwd_group_form_data_curr_cols_([a-zA-Z0-9_]+)$/', $key, $matches)) {
 	    			$key = $matches[1];
-	    			$rn_arr[$key] = str_replace(' ', '_', $value);
+	    			$value = str_replace(' ', '_', $value);
+
+	    			$checked = $cols['cwd_group_form_data_visible_curr_cols_'.$key];
+	    			
+	    			if ($value !== '') {
+		    			$rn_arr[$key] = $value;
+		    			$v_group[$value] = $checked;
+
+		    			//in case col rename 
+		    			//if ($key !== $value) { unset($visible[$key]); }
+	    			}
 	    		}
-	    		else {}
+	    		/*else if ($key === 'group_number') {
+	    			$group_num = $value;
+	    		}*/
+
 	    	}
 
-	    		var_dump($add_arr);
+	    		$v_group['id'] = $cols['cwd_options_static_id'];
+	    		$v_group['latitude'] = $cols['cwd_options_static_latitude'];
+	    		$v_group['longitude'] = $cols['cwd_options_static_longitude'];
+
+	    		$group_num = $cols['group_number']; 
+
+	    		$visible[$group_num] = $v_group;
+	    		update_option('cwd_dynamic_maps_visible_cols', $visible );
 
 	    		$add_res = empty($add_arr) ? 0 : $this->add_table_cols($add_arr);
 	    		$del_res =  empty($del_arr) ? 0 : $this->delete_table_cols($del_arr);
@@ -992,31 +1039,17 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
         $this->_column_headers = array($columns, $hidden, $sortable);
         $this->items = $data;
 
-        //$this->cwd_paged = 1;
-        //print_r('$: '.var_dump($this->cwd_paged()) );
-        //var_dump($this->cwd_table_type);
-        //print_r($this->get_pagenum());
-        //print_r('----------');
-       // var_dump($this);
-        //var_dump($this->$_pagination_args);
-        print_r('Page: ');
+  
+       /* print_r('Page: ');
         var_dump($currentPage);
         print_r('Max Page: ');
         var_dump(ceil($totalItems/$perPage));
         print_r('Items: ');
-        var_dump($totalItems);
+        var_dump($totalItems);*/
 
-
-        //var_dump( get_query_var('paged') );
-        //var_dump($_REQUEST['cwd_paged']);
 
         $this->process_bulk_action();
     }
-
-/*    public function cwd_paged() {
-    	return 1;
-    }
-*/
 
 
     // Returns an associative array containing the bulk action.
@@ -1027,9 +1060,10 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
 		 // action and action2 are set based on the triggers above and below the table		 		    
 		 
 		$actions = array(
-			'cwd-download' => 'Download',
-			'cwd-edit' => 'Edit',
-			'cwd-delete' => 'Delete'
+			//'cwd-download' => 'Download',
+			//'cwd-edit' => 'Edit',
+			//'cwd-delete' => 'Delete',
+			'cwd-null-action' => 'none'
 		);
 		return $actions;
 	}
@@ -1040,33 +1074,49 @@ class Cwd_Extend_WP_Admin_Table_Maps extends WP_List_Table {
         // security check!
         if ( isset( $_POST['_wpnonce'] ) && ! empty( $_POST['_wpnonce'] ) ) {
             $nonce  = filter_input( INPUT_POST, '_wpnonce', FILTER_SANITIZE_STRING );
-            $action = 'bulk-' . $this->_args['plural'];
+            
             if ( ! wp_verify_nonce( $nonce, $action ) )
                 wp_die( 'Nope! Security check failed!' );
-        }
+         
 
-        $action = $this->current_action();
+	        $action = $this->current_action();	
 
-        switch ( $action ) {
 
-            case 'cwd-delete':
-                wp_die( 'Delete something' );
-                break;
+	        $post_ids = isset($_GET['cwd_'.$this->cwd_table_type.'_selection']) ? $_GET['cwd_'.$this->cwd_table_type.'_selection']: null;   
 
-            case 'cwd-edit':
-            	echo '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!';
-                wp_die( 'Save something' );
-                break;
+	        if ( isset($post_ids) ) {
+	        	switch ( $action ) {
+		            case 'cwd-delete':
+		            	foreach ($post_ids as $key => $val) {
+		            		//$this->cwd_table_obj->delete_table_row($val);
+		            		if ($this->cwd_table_type = 'group') {
+		            			/*
+		            			$m_group = new Cwd_Dynamic_Maps_Marker_Table($val);
+		            			$m_group->delete_table();
+		            			*/
+		            		}
+		            	}
+		                wp_die();
 
-            case 'cwd-download':
-                wp_die( 'Download something' );
-                break;
 
-            default:
-                // do nothing or something else
-                return;
-                break;
-        }
+		                break;
+
+		            case 'cwd-edit':
+		            	wp_die();
+		                break;
+
+		            case 'cwd-download':
+		                wp_die();
+		                break;
+
+		            default:
+		                // do nothing or something else
+		            	wp_die();
+		                break;
+		        }
+	    	}
+
+    	} // End Security Check
 
         return;
     }

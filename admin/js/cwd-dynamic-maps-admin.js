@@ -208,7 +208,13 @@
 				delete_map_btn.css('visibility', 'visible');
 
 				// Fill Map Form
-				var map_settings_table = $("#map-settings-form table");	
+				var map_settings_form = $("#map-settings-form");
+				var map_settings_table = map_settings_form.find('table');	
+
+				map_settings_form.trigger('reset');
+				var radios = map_settings_table.find('[type="radio"]');
+				$(radios).prop('checked', false);
+
 				var td_map_title = map_settings_table.find('th[id="title"] h1');
 				td_map_title.text('Edit Map Settings');
 
@@ -225,11 +231,29 @@
 				var td_map_type_id = map_settings_table.find('td[id="map_type_id"] div input').filter('[value="'+selectedMap["mapTypeId"]+'"]').attr('checked', true);	
 				var td_map_tilt = map_settings_table.find('td[id="tilt"] input').filter('[value="'+selectedMap["tilt"]+'"]').attr('checked', true);
 				var td_map_heading = map_settings_table.find('td[id="heading"] input').filter('[value="'+selectedMap["heading"]+'"]').attr('checked', true);
+				var td_map_bounded = map_settings_table.find('td[id="map_bounded"] input').filter('[value="'+selectedMap["mapBounded"]+'"]').attr('checked', true);
 				var td_map_north_bound = map_settings_table.find('td[id="north_bound"] input').val( selectedMap['northBound'] );
 				var td_map_east_bound = map_settings_table.find('td[id="east_bound"] input').val( selectedMap['eastBound'] );
 				var td_map_south_bound = map_settings_table.find('td[id="south_bound"] input').val( selectedMap['southBound'] );
 				var td_map_west_bound = map_settings_table.find('td[id="west_bound"] input').val( selectedMap['westBound'] );
-				var td_map_polyline = map_settings_table.find('td[id="polyline"] input').val( selectedMap['polyline']);//.replace(/\\/g, '') );
+				var td_map_polyline_allow = map_settings_table.find('td[id="polyline_allow"] input').filter('[value="'+selectedMap["polylineAllow"]+'"]').attr('checked', true);
+				var td_map_polyline = map_settings_table.find('td[id="polyline"] textarea').val( selectedMap['polyline']);//.replace(/\\/g, '') );
+				var td_map_overlay_allow = map_settings_table.find('td[id="overlay_allow"] input').filter('[value="'+selectedMap["overlayAllow"]+'"]').attr('checked', true);
+				var td_map_overlay_hidden = map_settings_table.find('td[id="overlay"] input').val( selectedMap['overlay'] );
+
+				var td_map_overlay_img = map_settings_table.find('img[id="cwd-img-upload"]')
+				if (selectedMap['overlay'] !== '' && selectedMap['overlay'] !== null) {
+					td_map_overlay_img.attr('src', cwd_base_url + selectedMap['overlay']);
+				}
+				else {
+					td_map_overlay_img.attr('src', cwd_plugins_url + '/cwd-dynamic-maps/public/img/camera-icon.svg');
+				}
+
+				var td_overlay_north_bound = map_settings_table.find('td[id="north_overlay_bound"] input').val( selectedMap['northOverlayBound'] );
+				var td_overlay_east_bound = map_settings_table.find('td[id="east_overlay_bound"] input').val( selectedMap['eastOverlayBound'] );
+				var td_overlay_south_bound = map_settings_table.find('td[id="south_overlay_bound"] input').val( selectedMap['southOverlayBound'] );
+				var td_overlay_west_bound = map_settings_table.find('td[id="west_overlay_bound"] input').val( selectedMap['westOverlayBound'] );
+
 			})
 		}// End if page is map
 	});
@@ -306,9 +330,13 @@
 		 		var input = $('<input>').attr('class','regular-text').attr('type', 'text').attr('name', 'cwd_group_form_data_add_cols_'+(count)); 
 
 		 		var type_td = $('<td>');
-		 		var type = $('<select>').attr('name', 'cwd_group_form_data_type_add_cols_'+(count++));
-		 
+		 		//var type = $('<select>').attr('name', 'cwd_group_form_data_type_add_cols_'+(count++));
+		 		var type = $('<select>').attr('name', 'cwd_group_form_data_type_add_cols_'+(count));
 		 		var opt = $('<option>').text('Text').val('text');
+
+		 		var check = $('<input>').attr('type', 'checkbox').attr('name', 'cwd_group_form_data_visible_add_cols_'+(count));
+		 		check.prop('checked', 'checked').css('vertical-align', 'text-top').css('margin', '0px 20px 0px auto');
+
 		 		type.append(opt);
 		 		opt = $('<option>').text('Long Text').val('textarea');
 		 		type.append(opt);
@@ -317,6 +345,8 @@
 
 		 		
 		 		//type_td.append(type);
+
+		 		td.append(check);
 
 		 		td.append(input);
 
@@ -367,7 +397,7 @@
 		 	});
 
 			/*
-			 * Select Group for Group Settings Form & Infowindow Display Form
+			 * Select Group for Group Settings, Infowindow, & Cluster Forms
 			 */
 			$(".cwd-edit-action-group-settings-form").click( function(event) {
 
@@ -388,7 +418,7 @@
 				var oldText = infoForm.find('textarea');
 				oldText.remove();
 				var displayCode = '';
-				if (cwd_infowindow !== null) { displayCode = cwd_infowindow[groupNum]; }
+				if (cwd_infowindow_display !== null) { displayCode = cwd_infowindow_display[groupNum]; }
 				if ( typeof(displayCode) === 'undefined' ) { displayCode = ''; }
 				var textArea = '<textarea style="width:100%;" name="cwd_dynamic_maps_display_infowindow['+groupNum+']" >'+displayCode+'</textarea>';
 				infoForm.append(textArea);
@@ -398,10 +428,22 @@
 				var oldText = clusterForm.find('textarea');
 				oldText.remove();
 				var displayCode = '';
-				if (cwd_cluster_display !== null) { displayCode = cwd_cluster_display[groupNum]; }
-				if (typeof(displayCode) === 'undefined') {displayCode = ''; }
+				if ( cwd_cluster_display !== null ) { displayCode = cwd_cluster_display[groupNum]; }
+				if (typeof(displayCode) === 'undefined') { displayCode = ''; }
 				var textArea = '<textarea style="width:100%;" name="cwd_dynamic_maps_display_cluster['+groupNum+']" >'+displayCode+'</textarea>';
 				clusterForm.append(textArea);
+
+
+
+				var visibleCols = '';
+				if ( cwd_visible_cols !== null ) { visibleCols = cwd_visible_cols[groupNum]; }
+				if ( typeof(visibleCols) === 'undefined' ) { visibleCols = ''; }
+
+
+				/*console.log('VISIBLE');
+				console.log(visibleCols);*/
+
+
 
 				// Group Settings Form 
 				var post_data = "group_number="+groupNum+"&action=cwd_request&param=select_group";
@@ -411,6 +453,14 @@
 					var group_form_title = group_form_table.find('th[id="title"] h1').text('Edit Marker Group');
 
 					var groups_form_tbody = $("#cwd-tbody-groups-form");
+
+					var gf_id = $('input[name="cwd_options_static_id"]');
+					if (visibleCols['id'] === 'on') { gf_id.attr('checked', true);}
+					var gf_lat = $('input[name="cwd_options_static_latitude"]');
+					if (visibleCols['latitude'] === 'on') { gf_lat.attr('checked', true);}
+					var gf_lng = $('input[name="cwd_options_static_longitude"]');
+					if (visibleCols['longitude'] === 'on') { gf_lng.attr('checked', true);}
+
 					var old_rows = groups_form_tbody.children('tr[class="cwd_form_group_marker_cols_row"]');
 					var group_num_row = groups_form_tbody.children('tr[id="form_group_number_row"]');
 					var group_num_input = group_num_row.find('input');
@@ -432,29 +482,44 @@
 			 		// Add Delete Functionality to Marker Cols (NOTE: must add after delivering the html for the buttons)
 				 	$(".cwd_options_remove_table_col_button").click(function(event) {
 				 		var input = $(this).parent().find('input[type="text"]');
-				 		console.log(input);
+				 		var checkbox = $(this).parent().find('input[type="checkbox"]');
+
+				 		//console.log(input);
 				 		var name = input.attr('name');
 
 				 		if ($(this).val() == 'Delete') {
 					 		name = name.split("cwd_group_form_data_curr_cols_")[1];
-					 		var check = confirm("Are you sure you want to delete "+name);
+					 		var verify = confirm("Are you sure you want to delete "+name);
 
-							if (check) {
+							if (verify) {
 								alert('This column will be permanently deleted from the database when you click save');
-								$(this).parent().parent().css('background-color', 'red');
+								//$(this).parent().parent().css('background-color', 'red');
+								$(this).parents('tr[class="cwd_form_group_marker_cols_row"]').css('background-color', 'red');
+
+
 								$(this).val('Undo');
 					 			var newName = "cwd_group_form_data_delete_cols_";
 					 			newName += name;
 					 			input.attr('name', newName);
+
+					 			newName = "cwd_group_form_data_visible_delete_cols_";
+						 		newName += name;
+						 		checkbox.attr('name', newName);
+
 					 		}
 					 	}
 					 	else {
 					 		name = name.split("cwd_group_form_data_delete_cols_")[1];
-					 		$(this).parent().parent().css('background-color', '');
+					 		//$(this).parent().parent().css('background-color', '');
+					 		$(this).parents('tr[class="cwd_form_group_marker_cols_row"]').css('background-color', '');
 					 		$(this).val('Delete');
 					 		var newName = "cwd_group_form_data_curr_cols_";
 					 		newName += name;
 					 		input.attr('name', newName);
+
+					 		newName = "cwd_group_form_data_visible_curr_cols_";
+					 		newName += name;
+					 		checkbox.attr('name', newName);
 					 	}
 			 		})// End of action on .cwd_options_remove_table_col_button
 
@@ -476,6 +541,8 @@
 		var form = $('form[id="cwd-'+type+'-selection-form"]');
 		var searchInput = form.find('input[id="search-search-input"]');
 
+		if (searchInput.length === 0) { return false;}
+		
 		searchInput[0].name =  'cwd_s_'+type;
 
 		var pageNavs = form.find('span[class="pagination-links"]');
@@ -735,7 +802,7 @@
     		$("#cwd-import-markers-form").on('submit', function(event) {
     			event.preventDefault();
     			var post_data = $("#cwd-import-markers-form").serialize();
-    			var expr = /(.*)(marker_export_group=)([0-9]+)(.*)(marker_export_full_name=)([a-zA-z0-9_]+)(.*)/;
+    			var expr = /(.*)(marker_import_group=)([0-9]+)(.*)(marker_import_full_name=)([a-zA-z0-9_]+)(.*)/;
 				var matches = post_data.match(expr);
 				var grp_num = matches[3];
 				var grp_full_name = matches[6];
@@ -1176,7 +1243,7 @@
 	 * Note: if setting up Toggle Button via html on cwd-dynamic-maps-maps-page.php, 
 	 * these must defined above the jQuery loop 
 	 */
-	 var map, markers, markerCluster, userMarker, updateMarker, toggleOverlay, historicOverlay, selectMarker, openInfoWindow, fillForm;
+	 var map, markers, markerCluster, userMarker, updateMarker, centerLat, centerLng, overlay, polyline, selectMarker, openInfoWindow, fillForm, declusteredMarker;	 
 
 	 /*
 	 * Prepare Table Data for Map
@@ -1850,32 +1917,37 @@
 	/*
 	 * Set Up the Buttons for the Map
 	 */
-	function NewControlButton(controlDiv, map) {
+	function OverlayButton(controlDiv, map) {
 		// Set CSS for the control border.
 		var controlUI = document.createElement('div');
+
 		controlUI.style.backgroundColor = '#fff';
 		controlUI.style.border = '2px solid #fff';
-		controlUI.style.borderRadius = '3px';
-		controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+		controlUI.style.borderRadius = '2px';
+		//controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+		//controlUI.style.boxShadow = '0 2px 4px rgba(0,0,0,.2)';
+		controlUI.style.boxShadow = ' 0px 1px 4px -1px rgba(0, 0, 0, 0.3)';
 		controlUI.style.cursor = 'pointer';
-		controlUI.style.marginBottom = '22px';
+		//controlUI.style.marginBottom = '22px';
 		controlUI.style.textAlign = 'center';
-		controlUI.title = 'Click to toggle Overlay';
+		controlUI.title = 'Click to Toggle Overlay';
 
 		controlUI.style.marginTop = '10px';
 		controlUI.style.marginRight = '10px';
+		controlUI.style.float = 'right';
 
 		controlDiv.appendChild(controlUI);
 
 		// Set CSS for the control interior.
 		var controlText = document.createElement('div');
+		controlText.classList.add("cwd-btn-opacity");
 		controlText.style.color = 'rgb(25,25,25)';
 		controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-		controlText.style.fontSize = '16px';
-		controlText.style.lineHeight = '38px';
+		controlText.style.fontSize = '18px';
+		controlText.style.lineHeight = '36px';
 		controlText.style.paddingLeft = '5px';
 		controlText.style.paddingRight = '5px';
-		controlText.innerHTML = 'Toggle Map';
+		controlText.innerHTML = 'Overlay';
 		controlUI.appendChild(controlText);
 
 		// Setup the click event listeners
@@ -1884,6 +1956,78 @@
 		});
 
 	}
+
+	function PolylineButton(controlDiv, map) {
+		// Set CSS for the control border.
+		var controlUI = document.createElement('div');
+		controlUI.style.backgroundColor = '#fff';
+		controlUI.style.border = '2px solid #fff';
+		controlUI.style.borderRadius = '2px';
+		controlUI.style.boxShadow = ' 0px 1px 4px -1px rgba(0, 0, 0, 0.3)';
+		controlUI.style.cursor = 'pointer';
+		controlUI.style.textAlign = 'center';
+		controlUI.title = 'Click to Toggle Polyline';
+
+		controlUI.style.marginTop = '10px';
+		controlUI.style.marginRight = '10px';
+		controlUI.style.float = 'right';
+
+		controlDiv.appendChild(controlUI);
+
+		// Set CSS for the control interior.
+		var controlText = document.createElement('div');
+		//controlText.attr('class', 'cwd-btn-opacity');
+		controlText.classList.add("cwd-btn-opacity");
+		controlText.style.color = 'rgb(25,25,25)';
+		controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+		controlText.style.fontSize = '18px';
+		controlText.style.lineHeight = '36px';
+		controlText.style.paddingLeft = '5px';
+		controlText.style.paddingRight = '5px';
+		controlText.innerHTML = 'Polyline';
+		controlUI.appendChild(controlText);
+
+		// Setup the click event listeners
+		controlUI.addEventListener('click', function() {
+		  togglePolyline();
+		});
+
+	}
+
+    function HomeButton(controlDiv, map) {
+		// Set CSS for the control border.
+		var controlUI = document.createElement('div');
+		controlUI.style.backgroundColor = '#fff';
+		controlUI.style.border = '2px solid #fff';
+		controlUI.style.borderRadius = '2px';
+		//controlUI.style.boxShadow = '0 2px 2px rgba(0,0,0,.2)';
+		controlUI.style.boxShadow = ' 0px 1px 4px -1px rgba(0, 0, 0, 0.3)';
+		controlUI.style.boxSizing = 'content-box';
+		controlUI.style.cursor = 'pointer';
+		//controlUI.style.marginBottom = '22px';
+		controlUI.style.textAlign = 'center';
+		controlUI.title = 'Click to Center Map';
+
+		controlUI.style.marginTop = '10px';
+		controlUI.style.marginRight = '10px';
+		controlUI.style.float = 'right';
+		//controlUI.style.backgroundImage = 'url('+cwd_plugins_url+'/cwd-dynamic-maps/public/img/home_icon.png)';
+		controlUI.style.height = '36px';
+		controlUI.style.width = '36px';
+
+		controlDiv.appendChild(controlUI);
+
+		// Set CSS for the control interior.
+		var controlText = document.createElement('div');
+		controlText.innerHTML = '<img  class="cwd-map-home-button cwd-btn-opacity" src="'+cwd_plugins_url+'/cwd-dynamic-maps/admin/img/home_icon.png" >';
+		controlUI.appendChild(controlText);
+
+		// Setup the click event listeners
+		controlUI.addEventListener('click', function() {
+		  recenterMap();
+		});
+
+	} // End NewControlButton
 
 
 
@@ -1897,8 +2041,8 @@
 		var map_options = allMaps.find(function (obj) { return obj.id == marker_selected_map_id } );
 
 		//var map_options = JSON.parse(cwd_map_options);
-		var centerLat = parseFloat(map_options['centerLat']);
-		var centerLng = parseFloat(map_options['centerLng']);
+		centerLat = parseFloat(map_options['centerLat']);
+		centerLng = parseFloat(map_options['centerLng']);
 
 
 		var southBound = parseFloat(map_options['southBound']);
@@ -1923,6 +2067,10 @@
         			},
 		        	strictBounds: false,
 		        },*/
+		        mapTypeControlOptions: {
+		        	style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+		        	//mapTypeIds: ['roadmap', 'terrain']
+		        },
 
  
 		}
@@ -1937,26 +2085,55 @@
 
 		map = new google.maps.Map(document.getElementById('map-wrap'), options); 
 
-		var historicMapBounds = {
-			/*
-			north:42.318010,
-			south:42.290221,
-			east:-71.505528,
-			west:-71.572515
-			*/
-			north:42.30712,
-			south:42.30590,
-			east:-71.53036,
-			west:-71.53145
+
+		
+
+
+		if (map_options['polyline'] !== '' ) {
+			var polylineCoordinates = JSON.parse( map_options['polyline'].replace(/;/g, ',') );	
+			polyline = new google.maps.Polyline({
+			    path: polylineCoordinates,
+			    geodesic: false,
+			    strokeColor: '#FF0000',
+			    strokeOpacity: 1.0,
+			    strokeWeight: 2
+			});
+			polyline.setMap(map);
 		}
 
 
-		historicOverlay = new google.maps.GroundOverlay(
-			//'../wp-content/plugins/cwd-dynamic-maps/admin/img/Boston_1852_wholemap_web.jpg',
-			'../wp-content/plugins/cwd-dynamic-maps/admin/img/ArtTutor_GridPic',
-			historicMapBounds, {clickable:false}
-			);
-		toggleOverlay();
+
+		
+		var oNorth = (map_options['northOverlayBound'] != null ? parseFloat(map_options['northOverlayBound']) : 1.0);
+		var oSouth = (map_options['southOverlayBound'] != null ? parseFloat(map_options['southOverlayBound']) : 0.1);
+		var oEast = (map_options['eastOverlayBound'] != null ? parseFloat(map_options['eastOverlayBound']) : 1.0);
+		var oWest = (map_options['westOverlayBound'] != null ? parseFloat(map_options['westOverlayBound']) : 0.1);
+
+		/*alert(map_options['northOverlayBound'] );
+		alert(oNorth);
+		alert( typeof(map_options['overlay']) );
+		*/
+
+		var overlayBounds = {
+			north:oNorth,
+			south:oSouth,
+			east:oEast,
+			west:oWest,
+			/*north:42.30712,
+			south:42.30590,
+			east:-71.53036,
+			west:-71.53145*/
+		}
+
+		if (map_options['overlay'] != null ) {
+			overlay = new google.maps.GroundOverlay(
+				//'../wp-content/plugins/cwd-dynamic-maps/admin/img/Boston_1852_wholemap_web.jpg',
+				//'../wp-content/plugins/cwd-dynamic-maps/admin/img/ArtTutor_GridPic',
+				cwd_base_url + map_options['overlay'],
+				overlayBounds, {clickable:false}
+				);
+			toggleOverlay();
+		}
 
 
 		
@@ -1981,9 +2158,9 @@
 				},
 				position:coords,
 				cwd_id:m.id,
-				cwd_name:m.Name,
+				/*cwd_name:m.Name,
 				cwd_No:m.Burial_Site_Number,
-				cwd_Death:m.Death
+				cwd_Death:m.Death*/
 			});
 			cluster.push(marker); // AIDAN!!! REINSTATE THIS AFTER ADDING MARKERS TO HAVE CLUSTER 
 			//marker.setMap(map); // REMOVE THIS LINE AND SWAP WITH ABOVE
@@ -1992,14 +2169,63 @@
 
 		
 			// Check content
-			if (true /*m.description*/){
+			if (true){
+				var contents = '';
+
+				if ( cwd_infowindow_display === null || typeof(cwd_infowindow_display[marker_selected_group_id]) === 'undefined' || cwd_infowindow_display[marker_selected_group_id] === '') {			
+					// DEFAULT INFOWINDOW DISPLAY
+					for (var prop in m) {
+					    if (m.hasOwnProperty(prop)) {
+					        contents+='<p>'+prop+': '+m[prop]+'</p>';
+					    }
+					}
+				} 
+				else {
+					// PARSE THROUGH TEMPLATE FOR DATAFIELDS TO INSERT
+					contents += cwd_infowindow_display[marker_selected_group_id];
+
+					var expr = /(\$cwd-infowindow-)([a-zA-Z0-9_]+)/gm;
+				
+					var matches = contents.match(expr);
+
+					if (matches === null) {matches = 0;}
+
+					var markerColTypes = JSON.parse(marker_col_types);
+
+					var imgCols = markerColTypes.filter(function (obj) {return obj.COLUMN_COMMENT === 'img'});
+
+					for (var i=0; i<matches.length; i++) {
+						var x = matches[i].split("$cwd-infowindow-")[1];
+						var isImgType = imgCols.filter(function (obj) {return obj.COLUMN_NAME === x});
+
+						if ( isImgType.length > 0 &&  m[x] === '' ) {
+							//default image
+							contents = contents.replace( matches[i], cwd_plugins_url+'/cwd-dynamic-maps/public/img/camera-icon.png' );
+						}
+						else if( isImgType.length > 0 &&  m[x] !== '' ) {
+							//img relative path
+							contents = contents.replace( matches[i], cwd_base_url +/*'/'+*/ m[x] );
+
+						}
+						else if ( typeof(m[x]) === 'undefined' ) {
+							//empty string
+							contents = contents.replace( matches[i],  '' );
+						}
+						else {
+							//database cell
+							contents = contents.replace( matches[i], m[x] );
+						}
+					}
+
+				}
+
+				var id = 'cwd-markers-map';
 				var infoWindow = new google.maps.InfoWindow({
-			    	content:'<h4>'+m.Name+'</h4>'
-			    		+'<p>No. '+m.Burial_Site_Number+'</p>'
-			    		+'<p>Date: '+m.Death+'</p>'
+			    	content: '<div id="cwd-display-topbar-wrap"><button type="button" data-cwd-uid="'+id+'" id="cwd-display-topbar">&boxbox;</button><div class="cwd-infowindow" style="overflow:scroll;"><div style="height:100%; min-width:100%; width:auto; box-sizing:content-box;">'+contents+'</div></div></div>'
+
 				});
 
-				//Maybe this should be drawn dynamically  
+		
 				marker.addListener('click', function(event) {
 					//Close open infoWindows is exist
 					if(openInfoWindow) {
@@ -2078,20 +2304,55 @@
 			var cluster_ids = []; 
 			var clustersMarkersData = [];
 			var clusterDescription = '';
+			var defaultDisplay = true;
+
+			var id = 'cwd-markers-map';
 			
 
 
 			for (var i=0; i<clusterSize; i++) {
+				var customDisplay = '';
 				cluster_ids.push(clustersMarkers[i].cwd_id);
 				var tmp = markers.find(function (obj) { return obj.id == clustersMarkers[i].cwd_id; });
-				clustersMarkersData.push(tmp);
-				clusterDescription += '<b>'+tmp.Burial_Site_Number +'</b>, '+tmp.Name+ ', ' +tmp.Death+ '<br>';
+
+				if ( cwd_cluster_display === null || typeof(cwd_cluster_display[marker_selected_group_id]) === 'undefined' || cwd_cluster_display[marker_selected_group_id] === '') {		
+					customDisplay = '- '+tmp.id +' -';
+				}
+				else {
+					defaultDisplay = false;
+					//customDisplay += '<span>SPECIAL TEXT</span>';
+					// PARSE THROUGH TEMPLATE FOR DATAFIELDS TO INSERT
+					customDisplay += cwd_cluster_display[marker_selected_group_id];
+
+					var expr = /(\$cwd-infowindow-)([a-zA-Z0-9_]+)/gm;
+				
+					var matches = customDisplay.match(expr);
+
+					if (matches === null) {
+						matches = [];
+					} 
+
+					for (var j=0; j<matches.length; j++) {
+						var x = matches[j].split("$cwd-infowindow-")[1];
+
+						if ( typeof(tmp[x]) === 'undefined' ) {
+							//column doesn't exist
+							customDisplay = customDisplay.replace( matches[j], '<br><b>ERROR - NO DATA COLUMN: '+x+',<br>IN MARKER GROUP: '+m_group_num+'</b><br>' );
+						}
+						else {
+							//database cell
+							customDisplay = customDisplay.replace( matches[j], tmp[x] );
+						}
+					}
+				}	
+
+				clusterDescription += '<a class="cwd-cluster-link" data-cwd-uid="'+id+'" id="'+tmp.id+'" >'+customDisplay+'</a><br>';
 			}
 
 
 			var infoWindow = new google.maps.InfoWindow({
-			    	content:''
-			    			+ clusterDescription,
+			    	content: '<div class="cwd-cluster-infowindow">'+clusterDescription+'</div>',
+			    	maxWidth: 400,
 			    	position: cluster.getCenter()
 				});
 			infoWindow.open(map);
@@ -2101,6 +2362,35 @@
 			return event;
     		
 	    });
+
+		declusteredMarker = null;
+
+	    // Decluster Selected Markers on Link Click
+		$(document).on('click', '.cwd-cluster-link', function(event){
+
+    		var thisDiv = $(this);
+    		var id = thisDiv.attr('data-cwd-uid');
+
+    		// If exists Add declusteredMarker back into Clusterer 
+			if (declusteredMarker != null) {
+						declusteredMarker.setMap(null);
+
+						markerCluster.addMarker(declusteredMarker);
+
+						declusteredMarker = null;
+			}
+
+    		// NOTE: id is the unique id from the database, not the user defined No.
+    		var link_id = $(this).attr('id');
+    		
+    		declusteredMarker = cluster.find(function (obj) { return obj.cwd_id == link_id } );
+    		markerCluster.removeMarker(declusteredMarker);
+    		markerCluster.redraw();
+    		declusteredMarker.setMap(map);
+
+    		new google.maps.event.trigger(declusteredMarker, 'click');
+    		
+		});
 
 
 		// Listen for click on map
@@ -2227,25 +2517,53 @@
 		// Create the DIV to hold the control and call the CenterControl()
         // constructor passing in this DIV.
         var newControlDiv = document.createElement('div');
-        var newControl = new NewControlButton(newControlDiv, map);
+        
+        if ( typeof(overlay) !== 'undefined' ) {
+        	var newOverlayBtn = new OverlayButton(newControlDiv, map);
+        }
+
+        if ( typeof(polyline) !== 'undefined' ) {
+        	var newPolylineBtn = new PolylineButton(newControlDiv, map);
+        }
+
+        var newHomeBtn = new HomeButton(newControlDiv, map);
+
 
         var myDiv = $('#floating-panel')
 
         newControlDiv.index = 1;
-        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(newControlDiv);
+        newControlDiv.style.right = '50px';
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(newControlDiv);
 
 
 	} // End initMap
 
 	
 	function toggleOverlay() {
-		if (historicOverlay.getMap()) {
-			historicOverlay.setMap(null);
-		}
-		else {
-			historicOverlay.setMap(map);
+		if ( typeof(overlay) !== 'undefined' ) {
+			if ( overlay.getMap() ) {
+			overlay.setMap(null);
+			}
+			else {
+				overlay.setMap(map);
+			}
 		}
 	};
+
+	function togglePolyline() {
+		if ( typeof(polyline) !== 'undefined' ) {
+			if ( polyline.getMap() ) {
+				polyline.setMap(null);
+			}
+			else {
+				polyline.setMap(map);
+			}
+		}
+	};
+
+	function recenterMap() {
+        map.setCenter(new google.maps.LatLng(centerLat, centerLng));
+    };
 
 
 

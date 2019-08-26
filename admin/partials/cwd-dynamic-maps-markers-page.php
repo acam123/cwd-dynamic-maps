@@ -16,16 +16,20 @@
 <div class="wrap"> 
 	<h1>Edit Markers</h1>
 	<div id="cwd_file_wrap" ></div>
+
+	<div id="cwd-selected-box" class="cwd-admin-block">
 	<?php 
 
 		if (!empty(session_id())) {
-			echo session_id();
+			//echo session_id();
 			//unset($_SESSION['cwd-dynamic-maps-map-selection']);
 			//unset($_SESSION['cwd-dynamic-maps-group-selection']);
-			echo '<p>Map: '.((isset($_SESSION['cwd-dynamic-maps-map-selection'])) ? $_SESSION['cwd-dynamic-maps-map-selection']:'none').'</p>';
-			echo '<p>Group: '.((isset($_SESSION['cwd-dynamic-maps-group-selection'])) ? $_SESSION['cwd-dynamic-maps-group-selection']:'none').'</p>';
+			echo '<h1>Currently Selected</h1>';
+			echo '<h2>Map: '.((isset($_SESSION['cwd-dynamic-maps-map-selection'])) ? $_SESSION['cwd-dynamic-maps-map-selection']:'none').'</h2>';
+			echo '<h2>Group: '.((isset($_SESSION['cwd-dynamic-maps-group-selection'])) ? $_SESSION['cwd-dynamic-maps-group-selection']:'none').'</h2>';
 		}
 	?>
+	</div>
 
 	<form id="cwd-map-selection-form" method="get" class="cwd-admin-block">
 		<h1>Select Map</h1>
@@ -78,8 +82,8 @@
 		<!-- AJAX Interupts Submit and make new FormData() post to cwd_ajax_url -->
 		<form id="cwd-import-markers-form" method="post" enctype="multipart/form-data">
 			<input type="file" name="file" id="file">
-			<input type="hidden" name="marker_export_group" value=<?php echo $grp_num; ?> />
-			<input type="hidden" name="marker_export_full_name" value=<?php echo $grp_full_name; ?> />
+			<input type="hidden" name="marker_import_group" value=<?php echo $grp_num; ?> />
+			<input type="hidden" name="marker_import_full_name" value=<?php echo $grp_full_name; ?> />
 			<input type="submit" name="upload_csv" class="button button-primary" value="Upload File" />
 		</form>
 		

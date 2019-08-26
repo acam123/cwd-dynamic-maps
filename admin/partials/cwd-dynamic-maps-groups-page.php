@@ -52,6 +52,37 @@
 						<h2>Edit Data Columns</h2>
 					</td>
 				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<h4 style="display:inline; margin-left:-15px;" >Visible?</h4>
+						<h4 style="display:inline; margin-left:145px;" >Name</h4> 
+					</td>
+
+				</tr>
+
+				<tr>
+					<td></td>
+					<td style="">
+						<input type="checkbox" name="cwd_options_static_id" style="vertical-align: text-top; margin: 0px 20px 0px auto;">
+						<div style="line-height:25px;display:inline-block;box-sizing:border-box;padding-left:5px;width:350px;height:25px;border:1px solid lightgray;"><i>id</i></div>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<input type="checkbox" name="cwd_options_static_latitude" style="vertical-align: text-top; margin: 0px 20px 0px auto;">
+						<div style="line-height:25px;display:inline-block;box-sizing:border-box;padding-left:5px;width:350px;height:25px;border:1px solid lightgray;"><i>latitude</i></div>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>
+						<input type="checkbox" name="cwd_options_static_longitude" style="vertical-align: text-top; margin: 0px 20px 0px auto;">
+						<div style="line-height:25px;display:inline-block;box-sizing:border-box;padding-left:5px;width:350px;height:25px;border:1px solid lightgray;"><i>longitude</i></div>
+					</td>
+				</tr>
+
 	        </tbody>
 	        <tfoot>
 				 <tr>
@@ -67,6 +98,25 @@
 	</form>
 		<button id="cwd-group-delete-btn" type="button" class="button button-secondary cwd-right cwd-invisible">Delete Group</button>
 	</div>
+
+
+
+
+	<!--
+	<form id="cwd-group-data-visible-form" class="cwd-admin-block" method="post" action="options.php" >
+		<h1>Data Cols Visible to the Public </h1>
+		<table>
+			<tbody>
+			</tbody>
+		</table>
+		<div class="cwd-button-wrap"> 
+			<button id="cwd-group-form-visible-button" type="button" class="button button-primary cwd-right">Save Settings</button>
+		</div>
+	</form>
+-->
+
+
+
 
 	<form id="cwd-group-infowindow-form" class="cwd-admin-block" method="post" action="options.php">
 		<?php 

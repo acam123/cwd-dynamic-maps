@@ -2,58 +2,65 @@
 	TO DO
 ***************
 
-- Fix orderby & order on tables (markers page) to be confined to specific table
-- Move code to all admin page check function for javascript table rewrites to expand to effect all pages
-- Public maps make infowindow and declustered confined to specific map (when infowindow open and touch other map, marker jumps maps)
-- Add data columns and display rows for full template
+- Add PHP actions for columns visible to column settings update, only make visisble columns visible on public display (if none visible, remove table)
+~ Bulk Actions
+- ~ Duplicate 
+- Add ajax for Map import/export (have for marker import/export already)
+- Validation for import and forms
+- *Make input what columns show on front end
+- *Edit markers Rebecca update
+- Upload to aidan-campbell.com
+
+- Cluster Order low to high (no recent add to map out of order)
+- *Only show cols on front end Rebecca asked for
+
+- *Add overlay dynamically
+- Make overlay input use pictures
+- Remove commented out bits, alerts, console.log , etc.
+
+
+- Add cwd box full screen???
+- Markers Import return a count (add to Table) or else error (not just success)
+- Have Check against data as well as id during imports (if a second unique data marker (CwdOverwriteHash) checks out, its safe to update the row, else, append as a new row)
+- Multiple Polylines???
+
+- Import/Export All Marker Tables
+- Import/Export Cluster & Infowindow Displays
+
+- Make public map instructions editable from admin section
+- ~ Nice interface for adding polyline
+
+
+
+Add data columns and display rows for full template
 - Make database changes from Rebecca's table
-- Make import export depend on selected map/group/marker
-- Make public table link click skip cluaterwindow and go to individual infowindow 
 - Clean
 - Reload to Public Site (check when no maps, markers, etc.)
-- Admin maps backend load proper marker display 
+
+- If map too small move custom control buttons to LEFT_CENTER
 
 
 - Instead of @media for public shortcode vertical v horizontal shift should be javascript incase shortcode in small div (like in post)
-- Make markers import export respond to selected marker group
-- Localize shortcodes with distinct ids so can have multiple maps per page
+
 - Variable (maybe editable???) Single Marker displays 
-- Check map input usable
 
 Markers Page 
-- Put map on Add Markers page
 
 Maps Page 
 - Make interactive map for this page to select center, polyline, boundary, etc. 
-- All settings to apply to different maps 
 
 
 Misc
 - Validate database inputs
 - Make number inputs process as number types
-- Make map variable editable on maps page
-- Make shortcode to display map on page
+
+
 - Clean Code, esp. admin.js
 - ~ Add shortcode to loader class instead of adding in public class (still define shortcode callback in public)
-- Make searchbox for markers that filters markers in map
-- *Try making objects/markers fully dynamic by having seperate tables for post and postmeta (check speed)*
-- Make Add Marker Update Markers if selected from table or map and form automatically filled  
-- Add International Support
-- When click cluster don't make marker (also show all markers or zoom?)
-- When Cluster is Out of View marker is not assigned to cluster and list selected won't jump there!!!
-- Make import ajax request
-- Make cluster info nand cluster box user defined based on table description user gave
-- Make cluster click boxes have a zoom to marker box
-- Can we avoid the stop propogation ???
-- Make map and markers have unique id and styles so multiples can be created
-- Fix error when add invalid table column (e.g. blank)
-- Export and Import should match (import w/o time, export w/)
-- Import more robust handle inputs w/ lat long time id, and check for other data columns
 
+- *Try making objects/markers fully dynamic by having seperate tables for post and postmeta (check speed)*
+
+- Add International Support
 
 
 Public 
-
-
-
-

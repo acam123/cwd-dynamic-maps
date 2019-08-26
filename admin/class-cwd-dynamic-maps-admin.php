@@ -123,9 +123,17 @@ class Cwd_Dynamic_Maps_Admin {
 				// Marker Table Data
 				$maps = new Cwd_Dynamic_Maps_Map_Table();
 				if (isset($_SESSION['cwd-dynamic-maps-group-selection'])) {
+					// Selected Marker Group ID
+					wp_localize_script( $this->plugin_name.'-admin-js', 'marker_selected_group_id', $_SESSION['cwd-dynamic-maps-group-selection'] );
 
 					$markers = new Cwd_Dynamic_Maps_Marker_Table($_SESSION['cwd-dynamic-maps-group-selection']);
 
+					// Marker Data Cols
+					$marker_col_types =  ($markers->get_data_types() == null) ? wp_json_encode(array()) : stripslashes(wp_json_encode($markers->get_data_types()));
+
+					wp_localize_script( $this->plugin_name.'-admin-js', 'marker_col_types', $marker_col_types );
+
+					// Marker Data
 					wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_php_vars', stripslashes(wp_json_encode($markers->get_table_data_by_cols($markers->get_table_cols_clean_3() ))) ); 
 				}
 
@@ -142,15 +150,21 @@ class Cwd_Dynamic_Maps_Admin {
 				// Map Table Data
 				wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_map_data', stripslashes(wp_json_encode($maps->get_table_data() )) );
 
+				// Visible Columns
+				$visible_cols = get_option('cwd_dynamic_maps_visible_cols');
+				$visible_cols = ( empty($visible_cols) ? null :  $visible_cols );
+
 				// Infowindow Display
-				$display = get_option('cwd_dynamic_maps_display_infowindow');
-				$display = ( empty($display) ? null : array_map('stripslashes', $display) );
+				$infowindow_display = get_option('cwd_dynamic_maps_display_infowindow');
+				$infowindow_display = ( empty($infowindow_display) ? null : array_map('stripslashes', $infowindow_display) );
 
 				// Cluster Display
 				$cluster_display = get_option('cwd_dynamic_maps_display_cluster');
 				$cluster_display = ( empty($cluster_display) ? null : array_map('stripslashes', $cluster_display) );
 
-				wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_infowindow', $display );
+				wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_visible_cols', $visible_cols );
+
+				wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_infowindow_display', $infowindow_display );
 
 				wp_localize_script( $this->plugin_name.'-admin-js', 'cwd_cluster_display', $cluster_display);
 
@@ -201,7 +215,6 @@ class Cwd_Dynamic_Maps_Admin {
 	}
 
 	// Add Ajax Handler 
-	// *** !!! Get ARG for marker table num !!! ***
 	function cwd_ajax_handler() {
 		$param = isset($_REQUEST['param']) ? $_REQUEST['param'] : "";
 
@@ -243,10 +256,40 @@ class Cwd_Dynamic_Maps_Admin {
 				$group_number = $marker_obj->create_table($group_name);
 				$marker_obj = new Cwd_Dynamic_Maps_Marker_Table($group_number);
 				$response = 'Marker Group '.$group_number. ' Created Successfully'; 
+				$args['group_number'] = $group_number;
 			}
 			else if ( $group_name != ($marker_obj->get_group_name()) ) {
 				$marker_obj->rename_group($group_name);
 			}
+
+			
+			/*
+			* TO DO: seperate isVisible cols, update wp_option, 
+			*        send rest of args to be updated in table,
+			*        renamed & deleted cols in table php applied 
+			*        to isVisible wp_option
+			*        NOTE: set up isVisible on table creation 
+			*/
+
+
+			//$args=$_REQUEST;
+
+		/*	$response .= ' GROUP_NUM:'.$group_number; //***
+
+			//$edit = $args['cwd_dynamic_maps_visible_cols'];
+			$visible = get_option('cwd_dynamic_maps_display_cluster');
+			$visible = ( empty($visible) ? array() : array_map('stripslashes', $visible) );
+			$group = array_keys($edit)[0];
+			$visible[$group] = $edit[$group];
+
+			$response .= ' EDIT:'.$edit;
+
+			$response .= ' GROUP:'. $group;
+
+			$response .= update_option('cwd_dynamic_maps_visible_cols', $visible );
+			//$response = ($response === true ? 'Cluster Display was Successfully Updated for Group: '.$group : 'No Update Made for Cluster Display Group: '.$group); 
+		*/
+
 
 			$response .= "\n".$marker_obj->update_marker_cols($args);
 			if($response === false) {
@@ -262,19 +305,31 @@ class Cwd_Dynamic_Maps_Admin {
 			$group_number = $args['group_number'];
 			$this_marker_obj = new Cwd_Dynamic_Maps_Marker_Table($group_number);
 			$col_options = $this_marker_obj->get_table_cols_clean_2();
+			$data_types = $this_marker_obj->get_data_types();
 			$response = '';
+
+			$visible_cols = get_option('cwd_dynamic_maps_visible_cols');
+
+			//$visible_cols = ( empty($visible_cols) ? null : stripslashes(json_encode($visible_cols[$group_number]['unchecked'])) );
+
+			// REMOVE LINE BELOW
+			//$response .= '<tr><td>'.'VISIBLE'.gettype($visible_cols).$visible_cols.'</td></tr>';
+			//$response .= '<tr><td>'.'VISIBLE'.$group_number.gettype($visible_cols['2']).$visible_cols['2'].'</td></tr>';
+
+			
+
 
 			foreach ($col_options as $key => $val) {
 				$response .= '<tr class="cwd_form_group_marker_cols_row">
 					<td></td>
 					<td>
-						<input type="text" class="regular-text" name="cwd_group_form_data_curr_cols_'.esc_attr($val).'" value="'. str_replace('_', ' ', esc_attr($val)).'" />
+						<input type="checkbox" name="cwd_group_form_data_visible_curr_cols_'.esc_attr($val).'" style="vertical-align:text-top; margin:0px 20px 0px auto;" '.($visible_cols[$group_number][$val] === 'on' ? 'checked=checked' : null).'/><input type="text" class="regular-text" name="cwd_group_form_data_curr_cols_'.esc_attr($val).'" value="'. str_replace('_', ' ', esc_attr($val)).'" />
 
 						<input type="button" class="cwd_options_remove_table_col_button button button-secondary" value="Delete"/> 
+						<span>'. $data_types[$key]->COLUMN_COMMENT.'</span>
 					</td>
 				</tr>';
 			}
-
 		}
 
 		else if (!empty($param) && $param == "marker_select_map") {
@@ -390,6 +445,8 @@ class Cwd_Dynamic_Maps_Admin {
     function register_admin_settings() {
     	//register options to be filled out in plugin settings page on backend 
 		register_setting( 'cwd_dynamic_maps_options', 'cwd_dynamic_maps_option_api_key' );
+
+		register_setting( 'cwd_dynamic_maps_displays', 'cwd_dynamic_maps_visible_cols');
 		register_setting( 'cwd_dynamic_maps_displays', 'cwd_dynamic_maps_display_infowindow');
 		register_setting( 'cwd_dynamic_maps_displays', 'cwd_dynamic_maps_display_cluster');
 

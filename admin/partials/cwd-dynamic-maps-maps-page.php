@@ -177,35 +177,109 @@
 					</td>
 				</tr>
 				<tr>
-					<th>Bound (North):</th>
+					<th>Restrict Map (Bounds):</th>
+					<td id="map_bounded">
+						<div>
+							<input type="radio" class="" name="mapBounded" value=1 <?php //if ($tilt == 45) {echo 'checked';} ?> />
+							<label>Yes</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="mapBounded" value=0 <?php //if ($tilt == 0) {echo 'checked';} ?> />
+							<label>No</label>
+						</div> 					
+					</td>
+				</tr>
+				<tr>
+					<th>Map Bound (North):</th>
 					<td id="north_bound">
 						<input type="text" class="regular-text" name="northBound" value="<?php //echo $res->northBound; ?>"/>	
 					</td>
 				</tr>
 				<tr>
-					<th>Bound (East):</th>
+					<th>Map Bound (East):</th>
 					<td id="east_bound">
 						<input type="text" class="regular-text" name="eastBound" value="<?php //echo $res->eastBound; ?>"/>	
 					</td>
 				</tr>
 				<tr>
-					<th>Bound (South):</th>
+					<th>Map Bound (South):</th>
 					<td id="south_bound">
 						<input type="text" class="regular-text" name="southBound" value="<?php //echo $res->southBound; ?>"/>	
 					</td>
 				</tr>
 				<tr>
-					<th>Bound (West):</th>
+					<th>Map Bound (West):</th>
 					<td id="west_bound">
 						<input type="text" class="regular-text" name="westBound" value="<?php //echo $res->westBound; ?>"/>	
 					</td>
 				</tr>
 				<tr>
-					<th>Polyline (Outline):</th>
-					<td id="polyline">
-						<input type="text" class="regular-text" name="polyline" value="<?php //echo str_replace('\\', '',esc_attr($res->polyline)); ?>"/>	
+					<th>Allow Polyline (Public):</th>
+					<td id="polyline_allow">
+						<div>
+							<input type="radio" class="" name="polylineAllow" value=1 <?php //if ($tilt == 45) {echo 'checked';} ?> />
+							<label>Allow</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="polylineAllow" value=0 <?php //if ($tilt == 0) {echo 'checked';} ?> />
+							<label>Don't Allow</label>
+						</div> 
 					</td>
 				</tr>
+				<tr>
+					<th>Polyline (Outline):</br><p style="font-size:6;font-weight:normal;"><i>[{"lat": 42.30; "lng": -71.53}; {"lat": 42.31; "lng": -71.54}; {"lat": 42.30; "lng": -71.54}; {"lat": 42.30; "lng": -71.53}] </i></p></th>
+					<td id="polyline">
+						<textarea type="text" class="regular-text" name="polyline"> </textarea> <!--value="<?php //echo str_replace('\\', '',esc_attr($res->polyline)); ?>"/>	-->
+					</td>
+				</tr>
+				<tr>
+					<th>Allow Overlay (Public):</th>
+					<td id="overlay_allow">
+						<div>
+							<input type="radio" class="" name="overlayAllow" value=1 <?php //if ($tilt == 45) {echo 'checked';} ?> />
+							<label>Allow</label>
+						</div>
+						<div>
+							<input type="radio" class="" name="overlayAllow" value=0 <?php //if ($tilt == 0) {echo 'checked';} ?> />
+							<label>Don't Allow</label>
+						</div> 
+					</td>
+				</tr>
+				<tr>
+					<th>Overlay (Image):</th>
+					<td id="overlay">
+						<?php wp_enqueue_media();?>
+						<img id="cwd-img-upload" src="<?php echo plugins_url() . '/cwd-dynamic-maps/public/img/camera-icon.svg'; ?>" height="28px" /> 
+						<input type="hidden" class="process_custom_images" id="process_custom_images" name="overlay" value=""/>
+						<button type="button" class="set_custom_images button">+</button>
+						<button type="button" class="remove_custom_images button">-</button>
+					</td>
+				</tr>
+				<tr>
+					<th>Overlay Bound (North):</th>
+					<td id="north_overlay_bound">
+						<input type="text" class="regular-text" name="northOverlayBound" value="<?php //echo $res->northBound; ?>"/>	
+					</td>
+				</tr>
+				<tr>
+					<th>Overlay Bound (East):</th>
+					<td id="east_overlay_bound">
+						<input type="text" class="regular-text" name="eastOverlayBound" value="<?php //echo $res->eastBound; ?>"/>	
+					</td>
+				</tr>
+				<tr>
+					<th>Overlay Bound (South):</th>
+					<td id="south_overlay_bound">
+						<input type="text" class="regular-text" name="southOverlayBound" value="<?php //echo $res->southBound; ?>"/>	
+					</td>
+				</tr>
+				<tr>
+					<th>Overlay Bound (West):</th>
+					<td id="west_overlay_bound">
+						<input type="text" class="regular-text" name="westOverlayBound" value="<?php //echo $res->westBound; ?>"/>	
+					</td>
+				</tr>
+
 			</tbody>
 			<tfoot></tfoot> 
 		</table>

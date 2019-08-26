@@ -2,6 +2,19 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
+.cwd-map-home-button {
+	height:25px;
+	width:25px;
+	margin-top:5px;
+}
+
+.cwd-btn-opacity {
+	opacity:.65;
+}
+
+.cwd-btn-opacity:hover {
+	opacity:.85 !important;
+}
 
  .cwd-invisible {
  	visibility: hidden;

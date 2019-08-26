@@ -75,6 +75,8 @@ class Cwd_Dynamic_Maps_Public {
 
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/cwd-dynamic-maps-public.css', array(), $this->version, 'all' );
 
+		wp_enqueue_style( 'dashicons' );
+
 	}
 
 	/**
@@ -149,7 +151,7 @@ class Cwd_Dynamic_Maps_Public {
 			$markers = new Cwd_Dynamic_Maps_Marker_Table($a['markers']);
 
 			$marker_cols = ($markers->get_table_name() == null)? wp_json_encode(array()) : stripslashes(wp_json_encode($markers->get_table_data_by_cols($markers->get_table_cols_clean_3() )));
-			wp_localize_script( 'cwdmaps', 'cwd_php_vars',  $marker_cols);
+			//wp_localize_script( 'cwdmaps', 'cwd_php_vars',  $marker_cols);
 
 			$marker_col_types =  ($markers->get_data_types() == null) ? wp_json_encode(array()) : stripslashes(wp_json_encode($markers->get_data_types()));
 
@@ -159,7 +161,7 @@ class Cwd_Dynamic_Maps_Public {
 			wp_localize_script('cwdmaps', 'cwd_map_options', $maps_data);
  
 			// Plugin Url
-			wp_localize_script( 'cwdmaps', 'cwd_plugin_url', plugins_url() );
+			wp_localize_script( 'cwdmaps', 'cwd_plugins_url', plugins_url() );
 
 			// BaseURL
 			wp_localize_script( 'cwdmaps', 'cwd_base_url', get_site_url() );
@@ -167,13 +169,20 @@ class Cwd_Dynamic_Maps_Public {
 			// Api Key
 			wp_localize_script( 'cwdmaps', 'cwd_api_key', get_option('cwd_dynamic_maps_option_api_key') );
 
+
+
+			// Visible Table Cols 
+			$visible_cols = get_option('cwd_dynamic_maps_visible_cols');
+			$visible_cols = ( empty($visible_cols) ? null : $visible_cols);
+			wp_localize_script( 'cwdmaps', 'cwd_visible_table_cols', $visible_cols );
+
+
+
+
 			$uid = wp_generate_password( 4, false );
 
-			wp_localize_script( 'cwdmaps', 'cwd_uid', $uid);
-
-
 			static $static;
-			$static[] = array('uid' => $uid, 'atts' => $a, 'markers_data' => $marker_cols, 'marker_col_types' => $marker_col_types, 'maps_data' => $maps_data, );
+			$static[] = array('uid' => $uid, 'atts' => $a, 'markers_data' => $marker_cols, 'marker_col_types' => $marker_col_types );
 			wp_localize_script( 'cwdmaps', 'cwd_static', $static);
 
 
